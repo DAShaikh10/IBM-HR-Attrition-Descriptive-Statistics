@@ -1,0 +1,3 @@
+name: IPL Report Template
+description: Custom RMarkdown template with IPL logo on every page
+create_dir: true
