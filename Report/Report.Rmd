@@ -7,8 +7,8 @@ output:
     latex_engine: xelatex
     includes:
       in_header: header.tex
-geometry: margin=1in
-fontsize: 11pt
+geometry: "left=0.4in, right=0.4in, top=0.8in, bottom=0.8in"
+fontsize: 12pt
 ---
 
 ```{r setup, include=FALSE}
@@ -27,53 +27,41 @@ knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 
 # 1. Introduction
 
-This report presents a descriptive statistical analysis of a single IPL match (Sunrisers Hyderabad vs Royal Challengers Bengaluru, Match ID: 1426268) using ball-by-ball data.
-
-The objective is to apply univariate and bivariate statistical techniques taught in the course and to explore relationships between variables without implying causality.
+This report presents a descriptive univariate analysis of the highest-scoring IPL match between Sunrisers Hyderabad and Royal Challengers Bengaluru (15 April 2024), using ball-by-ball data. Each observation corresponds to a single delivery. The analysis focuses on distributional properties without performance or causal interpretation.
 
 # 2. Data Loading and Preprocessing
 
-```{r data-loading}
-rm(list = ls(all.names = TRUE))
-
-ipl_data <- read.csv("data/IPL.csv")
-
-ipl_data$current_run_rate <- round(ipl_data$team_runs / ipl_data$ball_no, 2)
-
-included_columns <- c(
-  "batter",
-  "bowler",
-  "batter_balls",
-  "batter_runs",
-  "batting_team",
-  "current_run_rate",
-  "over",
-  "runs_total",
-  "team_runs"
-)
-
-match <- subset(
-  x = ipl_data,
-  subset = match_id == 1426268,
-  select = included_columns
-)
-```
-
 Each observation represents one delivery in the match.
 
+```{r echo=FALSE}
+rm(list = ls(all.names = TRUE))
+```
+
+```{r data-loading}
+ipl_data <- read.csv("data/IPL.csv")
+ipl_data$current_run_rate <- round(ipl_data$team_runs / ipl_data$ball_no, 2)
+
+included_columns <- c("batter", "bowler", "batter_balls", "batter_runs", "batting_team", 
+                      "current_run_rate", "over", "runs_total", "team_runs")
+match <- subset( x = ipl_data, subset = match_id == 1426268, select = included_columns)
+```
+
 # 3. Univariate Analysis
-
 ## 3.1 Runs per Ball
-
+This variable provides the most meaningful univariate insight, showing the distribution of scoring outcomes per delivery.
 ```{r runs-per-ball}
 table(match$runs_total)
 round(prop.table(table(match$runs_total)), 2) * 100
 ```
+The distribution of runs_total shows that most deliveries result in 0 or 1 run, while boundaries (4 or 6 runs) occur less frequently but have a large impact on total scoring.
 
-This variable provides the most meaningful univariate insight, showing the distribution of scoring outcomes per delivery.
+## 3.2 Batter
+The variable batter records the striker on each delivery. The absolute frequency counts describe number of balls faced by the batter.
+```{r batter}
+table(match$batter)
+```
 
 ## 3.2 Boundary Events
-
 ```{r boundary-events}
 match$is_boundary <- ifelse(match$runs_total %in% c(4, 6), 1, 0)
 
@@ -96,6 +84,9 @@ plot(match$cum_boundaries,
 ```
 
 This plot is descriptive only and does not imply momentum or strategy.
+```{r}
+quantile(match$runs_total, probs = c(0, 0.25, 0.5, 0.75, 1))
+```
 
 # 4. Bivariate Analysis
 
