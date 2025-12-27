@@ -1,0 +1,195 @@
+---
+title: "Ball-by-Ball Statistical Analysis of an IPL Match"
+author: "Amaan Shaikh | Danish Ali Shaikh | Rajat Pandey"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    includes:
+      in_header: header.tex
+geometry: margin=1in
+fontsize: 11pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center",
+  fig.width = 6,
+  fig.height = 4
+)
+
+# Set working directory to the location of this Rmd file
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+# 1. Introduction
+
+This report presents a descriptive statistical analysis of a single IPL match (Sunrisers Hyderabad vs Royal Challengers Bengaluru, Match ID: 1426268) using ball-by-ball data.
+
+The objective is to apply univariate and bivariate statistical techniques taught in the course and to explore relationships between variables without implying causality.
+
+# 2. Data Loading and Preprocessing
+
+```{r data-loading}
+rm(list = ls(all.names = TRUE))
+
+ipl_data <- read.csv("data/IPL.csv")
+
+ipl_data$current_run_rate <- round(ipl_data$team_runs / ipl_data$ball_no, 2)
+
+included_columns <- c(
+  "batter",
+  "bowler",
+  "batter_balls",
+  "batter_runs",
+  "batting_team",
+  "current_run_rate",
+  "over",
+  "runs_total",
+  "team_runs"
+)
+
+match <- subset(
+  x = ipl_data,
+  subset = match_id == 1426268,
+  select = included_columns
+)
+```
+
+Each observation represents one delivery in the match.
+
+# 3. Univariate Analysis
+
+## 3.1 Runs per Ball
+
+```{r runs-per-ball}
+table(match$runs_total)
+round(prop.table(table(match$runs_total)), 2) * 100
+```
+
+This variable provides the most meaningful univariate insight, showing the distribution of scoring outcomes per delivery.
+
+## 3.2 Boundary Events
+
+```{r boundary-events}
+match$is_boundary <- ifelse(match$runs_total %in% c(4, 6), 1, 0)
+
+table(match$is_boundary)
+prop.table(table(match$is_boundary))
+```
+
+Boundaries form a minority of deliveries but contribute heavily to scoring.
+
+## 3.3 Cumulative Boundary Progression
+
+```{r cumulative-boundaries}
+match$cum_boundaries <- cumsum(match$is_boundary)
+
+plot(match$cum_boundaries,
+     type = "l",
+     xlab = "Ball Number",
+     ylab = "Cumulative Boundaries",
+     main = "Cumulative Boundary Events Over the Match")
+```
+
+This plot is descriptive only and does not imply momentum or strategy.
+
+# 4. Bivariate Analysis
+
+## 4.1 Runs per Ball by Batting Team
+
+(Qualitative × Numeric)
+
+```{r runs-by-team-stats}
+tapply(match$runs_total, match$batting_team, mean)
+tapply(match$runs_total, match$batting_team, median)
+tapply(match$runs_total, match$batting_team, sd)
+```
+
+```{r runs-by-team-plot}
+bp <- boxplot(runs_total ~ batting_team,
+              data = match,
+              main = "Runs per Ball by Batting Team",
+              xlab = "Batting Team",
+              ylab = "Runs per Ball",
+              varwidth = TRUE,
+              col = "lightgray")
+
+group_means <- tapply(match$runs_total, match$batting_team, mean)
+
+points(seq_along(bp$names),
+       group_means[bp$names],
+       pch = 19,
+       col = "red")
+```
+
+## 4.2 Cumulative Team Runs vs Over
+
+(Numeric × Numeric)
+
+```{r runs-vs-over}
+plot(match$over,
+     match$team_runs,
+     pch = 16,
+     xlab = "Over",
+     ylab = "Cumulative Team Runs",
+     main = "Cumulative Team Runs vs Over")
+
+lm_runs_over <- lm(team_runs ~ over, data = match)
+abline(lm_runs_over, col = "red", lwd = 2)
+
+cor(match$over, match$team_runs)
+summary(lm_runs_over)
+```
+
+High correlation is expected because team runs are cumulative.
+
+## 4.3 Current Run Rate over Overs
+
+(Ordinal × Continuous)
+
+```{r run-rate-over-overs}
+plot(match$over,
+     match$current_run_rate,
+     pch = 16,
+     xlab = "Over",
+     ylab = "Current Run Rate",
+     main = "Current Run Rate over Overs")
+
+lines(lowess(match$over, match$current_run_rate),
+      col = "red", lwd = 2)
+```
+
+Early overs show high volatility, followed by stabilisation.
+
+## 4.4 Boundary Frequency by Batting Team
+
+(Qualitative × Binary)
+
+```{r boundary-frequency-table}
+table(match$batting_team, match$is_boundary)
+prop.table(table(match$batting_team, match$is_boundary), margin = 1)
+```
+
+```{r boundary-frequency-plot}
+barplot(
+  prop.table(table(match$batting_team, match$is_boundary), margin = 1)[,2],
+  main = "Proportion of Boundary Balls by Batting Team",
+  xlab = "Batting Team",
+  ylab = "Proportion of Boundaries",
+  col = "lightgray"
+)
+```
+
+# 5. Conclusion
+
+This report demonstrates the application of descriptive univariate and bivariate statistics to IPL ball-by-ball data while respecting the limitations of cumulative variables.
+
+Key findings include:
+
+- Runs per ball is the most informative univariate variable
+- Boundary events are relatively infrequent but highly impactful
+- Differences between teams are subtle and distribution-based
