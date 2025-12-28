@@ -1,0 +1,57 @@
+---
+title: "Descriptive Statistical Analysis of the highest scoring IPL match"
+output:
+  pdf_document:
+    toc: true
+date: "`r Sys.Date()`"
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+# CLEAR ENVIRONMENT.
+rm(list = ls(all.names = TRUE))
+
+# LOAD PACKAGES
+
+# GLOBAL CHUNK OPTIONS
+# 'dev' checks if it's PDF to use high-quality rendering, otherwise standard
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 6,
+  fig.height = 4
+)
+
+# GGPLOT THEME
+theme_set(theme_minimal())  # check ?theme_bw for other themes available
+```
+
+\newpage
+
+# Introduction
+
+This report presents a descriptive analysis of the highest-scoring IPL match between **Sunrisers
+Hyderabad** (SRH) and **Royal Challengers Bengaluru** (RCB) (15 April 2024), using ball-by-ball data. Each observation corresponds to a single delivery.
+
+# Data Loading and Preprocessing
+```{r data-loading-and-processing}
+ipl_data <- read.csv("data/IPL.csv") # Load the IPL data. We do not need external packages for reading `CSV`.
+
+# Aggregate "Current Run Rate" variable.
+ipl_data$current_run_rate <- round(ipl_data$team_runs / ipl_data$ball_no, 2)
+
+included_columns <- c("batter", "bowler", "batter_balls", "batter_runs", "batting_team",
+                      "current_run_rate", "over", "runs_total", "team_runs")
+
+# We will work with a single match i.e., SRH vs RCB, 15th April 2024.
+match <- subset(x = ipl_data, subset = match_id == 1426268, select = included_columns)
+```
+
+## Data Summary
+```{r data-summary}
+head(match)
+cat("Dataset dimensions:", nrow(match), "rows x", ncol(match), "columns")
+```
+# Univariate Analysis
+## Batter - Absolute frequency of balls faced.
