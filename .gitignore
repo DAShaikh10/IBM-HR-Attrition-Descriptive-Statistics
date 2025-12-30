@@ -4,7 +4,3 @@
 .RData
 .Ruserdata
 .DS_Store
-
-# Data folder.
-data/
-SRHvsRCB_2024.csv

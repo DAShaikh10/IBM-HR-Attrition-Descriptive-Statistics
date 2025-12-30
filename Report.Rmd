@@ -1,23 +1,18 @@
 ---
-title: "IBM HR Employee Attrition Analysis"
-subtitle: "Statistical Computing Project"
+title: "IBM HR Employee Attrition Descriptive Analysis"
+subtitle: "Statistical Computing Group Project"
 author: "Amaan Shaikh | Danish Ali Shaikh | Rajat Pandey"
-date: "`r Sys.Date()`"
 output:
   pdf_document:
-    toc: true
-    toc_depth: 2
     number_sections: true
-    fig_caption: yes
-geometry: "left=0.75in, right=0.75in, top=0.8in, bottom=0.8in"
-fontsize: 11pt
 ---
 
-```{r setup, include=FALSE}
-# CLEAR ENVIRONMENT
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+# Clear Environment.
 rm(list = ls(all.names = TRUE))
 
-# GLOBAL CHUNK OPTIONS
+# Global Chunk Options. [Ref: https://lms.bht-berlin.de/mod/folder/view.php?id=1419650]
+# 'dev' checks if it's PDF to use high-quality rendering, otherwise standard.
 knitr::opts_chunk$set(
   echo = FALSE,
   warning = FALSE,
@@ -29,256 +24,195 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Introduction
+```{r helpers, echo=FALSE}
+# ----------------- Helper functions to follow 'DRY' policy.--------------------
 
-The IBM HR Employee Attrition dataset serves as a sample of workforce data, organized as a data matrix of observations and qualitative and quantitative variables. This report performs a comprehensive descriptive statistical analysis to summarize the distribution of individual variables using frequencies, measures of location, and measures of dispersion. Bivariate techniques, including contingency tables and correlation coefficients, are applied to investigate the joint behavior and co-dependency between employee attributes and attrition. Furthermore, simple linear regression is utilized to model the linear relationship between tenure and monthly income by estimating the regression coefficients.
+# This function allows for generating absolute, relative,
+# cumulative absolute, cumulative relative frequencies as  a table.
+# 
+# Arguments:
+#   x:  any R object for which frequencies are to be obtained.
+#   var_name: Variable name for which data is present in argument 'x'. 
+#   caption: Caption for the generated table. OPTIONAL.
+#   show_cumulative: Required to be turned on in order to see cumulative
+#                    frequencies. OPTIONAL. DEFAULT: FALSE
+print_freq_table <- function(x, var_name, caption = NULL, show_cumulative = FALSE) {
+  df <- as.data.frame(table(x))
+  
+  colnames(df) <- c(var_name, "Frequency")
+  
+  # Calculate Relative Frequency (Percentage or Proportion)
+  df$Proportion <- round(100 * df$Frequency / sum(df$Frequency), 2)
+  
+  # Optionally, calculate Cumulative Absolute and Cumulative Relative Frequencies. 
+  if (show_cumulative) {
+    df$`Cum. Freq.` <- cumsum(df$Frequency)
+    df$`Cum. %`    <- cumsum(df$Proportion)
+  }
+  
+  # Handle Caption (Auto-generate if NULL)
+  if (is.null(caption)) {
+    caption <- paste(var_name, "Frequency Table")
+  }
+  
+  knitr::kable(
+    df,
+    caption = caption,
+    align = 'c', # Center align all columns.
+    format = "markdown"
+  )
+}
 
-## Dataset & Data Preparation
-We analyze ten key variables classified into the following datatypes :
-
-- **Nominal**: `Attrition`, `OverTime`
-- **Ordinal**: `JobLevel` (1-5), `JobSatisfaction` (1-4), `WorkLifeBalance` (1-4)
-- **Numeric (Discrete)**: `Age`, `YearsAtCompany`, `TotalWorkingYears`, `NumCompaniesWorked`
-- **Numeric (Continuous)**: `MonthlyIncome`
-
-```{r load-data, echo=TRUE}
-# Load data and select variables
-hr <- read.csv("WA_Fn-UseC_-HR-Employee-Attrition.csv", stringsAsFactors = FALSE)
-hr_sub <- hr[, c("Attrition", "OverTime", "JobLevel", "JobSatisfaction", 
-                 "WorkLifeBalance","Age", "YearsAtCompany", "TotalWorkingYears", 
-                 "NumCompaniesWorked", "MonthlyIncome")]
-
-# Convert data types
-hr_sub$Attrition <- factor(hr_sub$Attrition)
-hr_sub$OverTime  <- factor(hr_sub$OverTime)
-hr_sub$JobLevel <- factor(hr_sub$JobLevel, levels = 1:5, ordered = TRUE)
-hr_sub$JobSatisfaction <- factor(hr_sub$JobSatisfaction, levels = 1:4, ordered = TRUE)
-hr_sub$WorkLifeBalance <- factor(hr_sub$WorkLifeBalance, levels = 1:4, ordered = TRUE)
+# This function finds the mode for a given categorical variable.
+#
+# Arguments:
+#   x: a vector, a data frame, an array - for which mode is to be obtained.
+print_mode <- function(x) {
+  uniqv <- unique(x)
+  uniqv[which.max(tabulate(match(x, uniqv)))]
+}
 ```
 
-## Data Summary
+# Introduction
 
-```{r data-summary}
-# Dataset dimensions
-dim_table <- data.frame(
-  Rows = nrow(hr_sub),
-  Columns = ncol(hr_sub)
-)
+The IBM HR Employee Attrition workforce data is organized as a data matrix of observations and qualitative and quantitative variables. This report performs a comprehensive descriptive statistical analysis to summarize the distribution of individual variables using frequencies, measures of location, and measures of dispersion. Bivariate techniques, including contingency tables and correlation coefficients, are applied to investigate the joint behavior and co-dependency between employee attributes and attrition. Furthermore, simple linear regression is utilized to model the linear relationship between tenure and monthly income by estimating the regression coefficients.
 
-knitr::kable(dim_table, caption = "Dataset Dimensions")
+## Data Loading & Feature Selection
+We analyze **eight** key variables classified into the following datatypes :
 
-# Summary statistics
-summary(hr_sub)
+- **Categorical - Nominal**: `Attrition`, `OverTime`
+- **Categorical - Ordinal**: `JobLevel` (1-5), `JobSatisfaction` (1-4), `WorkLifeBalance` (1-4)
+- **Numeric - Discrete**: `Age`, `YearsAtCompany`
+- **Numeric - Continuous**: `MonthlyIncome`
 
-# First 6 rows
-knitr::kable(
-  t(head(hr_sub)),
-  caption = "First 6 Observations (Transposed View)",
-  booktabs = TRUE
-)
+```{r load-data, echo = FALSE}
+raw_data     <- read.csv("data/ibm-hr-attrition.csv", stringsAsFactors = FALSE)
+hr           <- raw_data[, c("Attrition", "OverTime", "JobLevel",
+                             "JobSatisfaction", "WorkLifeBalance", "Age",
+                             "YearsAtCompany", "MonthlyIncome")]
+```
+
+```{r preprocessing, echo = FALSE}
+# Nominal Variables.
+hr$Attrition <- as.factor(hr$Attrition)
+hr$OverTime  <- as.factor(hr$OverTime)
+
+# Ordinal Variables.
+hr$JobLevel        <- factor(hr$JobLevel, 
+                             levels = 1:5, 
+                             labels = c("Entry Level", "Junior", "Mid Level", "Senior", "Executive"), 
+                             ordered = TRUE)
+hr$JobSatisfaction <- factor(hr$JobSatisfaction, 
+                             levels = 1:4, 
+                             labels = c("Low", "Medium", "High", "Very High"), 
+                             ordered = TRUE)
+hr$WorkLifeBalance <- factor(hr$WorkLifeBalance, 
+                             levels = 1:4, 
+                             labels = c("Bad", "Good", "Better", "Best"), 
+                             ordered = TRUE)
+```
+
+## Data summary
+
+```{r data-summary, echo = FALSE, results = 'asis'}
+paste("Dataset Dimensions:", nrow(hr), "rows x", ncol(hr), "columns.")
+knitr::kable(t(head(hr)), caption = "First six observations (Transposed View)")
 ```
 
 # Univariate Analysis
 
-Univariate analysis examines each variable individually to understand its distribution, measures of location & measures of dispersion.
+## Target & Sentiment
 
-## Categorical and Ordinal Variables
+In this section, we explore the question:
+"How do employees feel and what is their status?"
 
-### Attrition Status
-
-Here we tabulate the absolute and relative frequencies of employees who left the company versus those who stayed.
-```{r attrition-freq}
-# Frequency and proportion table
-attrition_tab <- as.data.frame(table(hr_sub$Attrition))
-colnames(attrition_tab) <- c("Attrition", "Frequency")
-
-attrition_tab$Proportion <- round(
-  attrition_tab$Frequency / sum(attrition_tab$Frequency), 3
-)
-
-knitr::kable(
-  attrition_tab,
-  caption = "Attrition Status: Frequency and Proportion",
-  align = c("l", "c", "c"),
-  format = "markdown"
-)
-```
-
-### Overtime Status
-This shows the distribution of employees working overtime versus standard hours.
-```{r overtime-freq}
-# Frequency and proportion table
-overtime_tab <- as.data.frame(table(hr_sub$OverTime))
-colnames(overtime_tab) <- c("OverTime", "Frequency")
-
-overtime_tab$Proportion <- round(
-  overtime_tab$Frequency / sum(overtime_tab$Frequency), 3
-)
-
-knitr::kable(
-  overtime_tab,
-  caption = "Overtime Status: Frequency and Proportion",
-  align = c("l", "c", "c"),
-  format = "markdown"
-)
-```
-
-### Job Level (Ordinal)
-
-The frequency distributions reveal employee composition. The attrition rate indicates what proportion of employees left the company. Job level cumulative frequencies show the hierarchical distribution from entry-level to senior positions.
-
-```{r joblevel-freq}
-# Frequency table with percentages and cumulative frequencies
-joblevel_freq <- as.data.frame(table(hr_sub$JobLevel))
-colnames(joblevel_freq) <- c("Job Level", "Frequency")
-joblevel_freq$Percentage <- round(100 * joblevel_freq$Frequency / sum(joblevel_freq$Frequency), 2)
-joblevel_freq$`Cumulative Frequency` <- cumsum(joblevel_freq$Frequency)
-joblevel_freq$`Cumulative %` <- cumsum(joblevel_freq$Percentage)
-
-knitr::kable(joblevel_freq,
-             caption = "Job Level Distribution (Ordinal)",
-             align = c('c', 'c', 'c', 'c', 'c'),
-             format = "markdown")
+### Attrition Status (Binary Nominal)
+ 
+```{r attrition-univariate, echo = FALSE}
+print_freq_table(hr$Attrition, "Attrition Status")
+barplot(table(hr$Attrition))
 ```
 
 ### Job Satisfaction (Ordinal)
 
-Job satisfaction levels reveal employee contentment with their roles. The distribution shows how satisfaction is spread across the workforce, with higher levels indicating greater job fulfillment.
+```{r job-satisfaction-univariate, echo = FALSE}
+print_freq_table(hr$JobSatisfaction, "Job Satisfaction", show_cumulative = TRUE)
+print_mode(hr$JobSatisfaction)
+```
+### Work Life Balance (Ordinal)
 
-```{r jobsatisfaction-freq}
-# Frequency table with percentages
-jobsat_freq <- as.data.frame(table(hr_sub$JobSatisfaction))
-colnames(jobsat_freq) <- c("Satisfaction Level", "Frequency")
-jobsat_freq$Percentage <- round(100 * jobsat_freq$Frequency / sum(jobsat_freq$Frequency), 2)
-jobsat_freq$`Cumulative %` <- cumsum(jobsat_freq$Percentage)
-
-knitr::kable(jobsat_freq,
-             caption = "Job Satisfaction Distribution (1=Low, 4=High)",
-             align = c('c', 'c', 'c', 'c'),
-             format = "markdown")
+```{r work-life-balance-univariate, echo = FALSE}
+print_freq_table(hr$WorkLifeBalance, "Work Life Balance", show_cumulative = TRUE)
+print_mode(hr$WorkLifeBalance)
 ```
 
-### Work-Life Balance (Ordinal)
+## Financial Structure
 
-Work-life balance distribution indicates how well employees manage their professional and personal lives. This metric is crucial for understanding employee well-being and potential burnout risks.
+What is the job structure and compensation?
 
-```{r worklife-balance}
-# Frequency table with percentages
-wlb_freq <- as.data.frame(table(hr_sub$WorkLifeBalance))
-colnames(wlb_freq) <- c("Balance Level", "Frequency")
-wlb_freq$Percentage <- round(100 * wlb_freq$Frequency / sum(wlb_freq$Frequency), 2)
-wlb_freq$`Cumulative %` <- cumsum(wlb_freq$Percentage)
+### Job Level (Ordinal)
 
-knitr::kable(wlb_freq,
-             caption = "Work-Life Balance Distribution (1=Bad, 4=Best)",
-             align = c('c', 'c', 'c', 'c'),
-             format = "markdown")
+```{r job-level-univariate, echo = FALSE}
+print_freq_table(hr$JobLevel, "Job Level", show_cumulative = TRUE)
+print_mode(hr$JobLevel)
+```
+### Monthly Income (Continuous)
+
+```{r monthly-income-univariate, echo = FALSE}
+hist(hr$MonthlyIncome,
+     xlab = "Monthly Income in USD",
+     ylab = "Count of Employees")
+
+boxplot(hr$MonthlyIncome)
+
+var(hr$MonthlyIncome)
+sd(hr$MonthlyIncome)
+range(hr$MonthlyIncome)
+IQR(hr$MonthlyIncome)
 ```
 
-### Visualizing Categorical Distributions
-To better compare the distributions of these ordinal variables, we visualize them using bar charts.
+### Over Time (Binary Nominal)
 
-```{r}
-par(mfrow = c(1, 3)) # Arrange plots in 1 row, 3 columns
+```{r overtime-univariate, echo = FALSE}
+print_freq_table(hr$OverTime, "Over Time")
+```
+## Demographics
 
-# Job Level
-barplot(table(hr_sub$JobLevel), main="Job Level", 
-        col="lightblue", xlab="Level", ylab="Count")
+Who are they (Time) and can we model their growth?
 
-# Job Satisfaction
-barplot(table(hr_sub$JobSatisfaction), main="Job Satisfaction", 
-        col="lightgreen", xlab="Level", ylab="Count")
+### Age (Numeric)
 
-# Work Life Balance
-barplot(table(hr_sub$WorkLifeBalance), main="Work Life Balance", 
-        col="salmon", xlab="Level", ylab="Count")
+```{r age-univariate}
+mean(hr$Age)
+median(hr$Age)
+var(hr$Age)
+sd(hr$Age)
+IQR(hr$Age)
+range(hr$Age)
+boxplot(hr$Age)
+plot(ecdf(hr$Age))
+```
+### Years At Company (Numeric)
 
-par(mfrow = c(1, 1)) # Reset layout
+```{r years-at-company-univariate}
+mean(hr$YearsAtCompany)
+median(hr$YearsAtCompany)
+var(hr$YearsAtCompany)
+sd(hr$YearsAtCompany)
+IQR(hr$YearsAtCompany)
+range(hr$YearsAtCompany)
+boxplot(hr$YearsAtCompany)
+plot(ecdf(hr$YearsAtCompany))
 ```
 
-## Numeric Variables
+# Bivariate Analysis
 
-For quantitative variables, we analyze the distribution shape using histograms and boxplots, and we calculate measures of central tendency and dispersion.
+## Impact of Sentiment on Attrition
 
-### Age Distribution
-The age distribution helps us understand the demographic maturity of the workforce.
+## Financial Factors & Attrition
 
-```{r age-analysis, fig.height=4, fig.width=8}
-# Set up side-by-side plots
-par(mfrow = c(1, 2))
+## Demographics & Attrition
 
-# Histogram
-hist(hr_sub$Age, main="Histogram of Age", xlab="Age", 
-     col="wheat", border="white")
+# Linear Regression Analysis
 
-# Boxplot
-boxplot(hr_sub$Age, main="Boxplot of Age", ylab="Age", 
-        col="wheat", horizontal=TRUE)
-
-# Reset layout
-par(mfrow = c(1, 1))
-
-# Horizontal Summary Statistics
-age_stats <- data.frame(
-  Mean = round(mean(hr_sub$Age), 2),
-  Median = median(hr_sub$Age),
-  SD = round(sd(hr_sub$Age), 2),
-  Min = min(hr_sub$Age),
-  Max = max(hr_sub$Age)
-)
-knitr::kable(age_stats, caption = "Descriptive Statistics: Age")
-```
-
-### Monthly Income Distribution
-Income is analyzed to detect skewness and potential outliers (high earners).
-
-```{r}
-par(mfrow = c(1, 2))
-
-# Histogram
-hist(hr_sub$MonthlyIncome, main="Histogram of Income", xlab="Monthly Income", 
-     col="lightgray", border="white")
-
-# Boxplot
-boxplot(hr_sub$MonthlyIncome, main="Boxplot of Income", ylab="Income", 
-        col="lightgray", horizontal=TRUE)
-
-par(mfrow = c(1, 1))
-
-# Horizontal Summary Statistics
-inc_stats <- data.frame(
-  Mean = round(mean(hr_sub$MonthlyIncome), 2),
-  Median = median(hr_sub$MonthlyIncome),
-  SD = round(sd(hr_sub$MonthlyIncome), 2),
-  IQR = IQR(hr_sub$MonthlyIncome)
-)
-knitr::kable(inc_stats, caption = "Descriptive Statistics: Monthly Income")
-```
-
-
-### Years at Company (Tenure)
-Tenure analysis reveals loyalty patterns and workforce stability.
-
-```{r}
-par(mfrow = c(1, 2))
-
-# Histogram
-hist(hr_sub$YearsAtCompany, main="Dist. of Tenure", xlab="Years", 
-     col="lavender", border="white")
-
-# Boxplot
-boxplot(hr_sub$YearsAtCompany, main="Boxplot of Tenure", ylab="Years", 
-        col="lavender", horizontal=TRUE)
-
-par(mfrow = c(1, 1))
-
-# Horizontal Summary Statistics
-tenure_stats <- data.frame(
-  Mean = round(mean(hr_sub$YearsAtCompany), 2),
-  Median = median(hr_sub$YearsAtCompany),
-  SD = round(sd(hr_sub$YearsAtCompany), 2),
-  Max = max(hr_sub$YearsAtCompany)
-)
-knitr::kable(tenure_stats, caption = "Descriptive Statistics: Years at Company")
-```
-
+# Conclusion
