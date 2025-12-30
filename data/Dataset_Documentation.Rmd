@@ -1,0 +1,79 @@
+---
+title: "IBM HR Employee Attrition Analysis"
+subtitle: "Statistical Computing Project"
+author: "Amaan Shaikh | Danish Ali Shaikh | Rajat Pandey"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+geometry: "left=0.75in, right=0.75in, top=0.8in, bottom=0.8in"
+fontsize: 11pt
+---
+
+## 1. Introduction
+
+This document provides a short documentation of the IBM HR Employee Attrition dataset used for the Statistical Computing group project. Instead of just a script to load the data we thought of sharing a summary so that it is easier for you to assess the dataset. 
+
+The dataset was obtained from Kaggle and was originally created by IBM to study employee attrition patterns within an organization.
+
+**Source:** IBM HR Analytics Employee Attrition & Performance  
+**URL:** https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset
+
+The purpose of this documentation is to summarize the dataset, describe the selected variables and their data types.
+
+## 2. Dataset Description
+
+This is a fictional data set created by IBM data scientists. It includes demographic information, job-related attributes, compensation details, and work–life balance indicators.
+
+The primary target variable is **Attrition**, which indicates whether an employee has left the company.  
+Since the original dataset contains many variables, we focus on a subset of variables that are most relevant for attrition analysis and suitable for statistical exploration.
+
+```{r load-data}
+# Load dataset.
+hr <- read.csv("WA_Fn-UseC_-HR-Employee-Attrition.csv", stringsAsFactors = FALSE)
+
+# Our selection of variables of interest.
+data_selected <- hr[, c("Attrition", "OverTime", "JobLevel", "JobSatisfaction", 
+                        "WorkLifeBalance", "Age", "YearsAtCompany", "TotalWorkingYears", 
+                        "NumCompaniesWorked", "MonthlyIncome")]
+```
+
+\newpage
+
+## 3. Summary of the Dataset
+
+### 3.1 Number of Rows and Columns
+
+```{r dimensions}
+dim(data_selected)
+```
+
+### 3.2 Summary of Variables
+
+```{r summary}
+summary(data_selected)
+```
+
+## 4. Variable Description
+
+| Variable Name | Data Type | Scale of Measure | Description |
+|---------------|-----------|------------------|-------------|
+| **Attrition** | Binary | Nominal | Whether the employee left the company (Yes / No) |
+| **OverTime** | Binary | Nominal | Whether the employee works overtime |
+| **JobLevel** | Categorical | Ordinal | Job level on a scale from 1 (lowest) to 5 (highest) |
+| **JobSatisfaction** | Categorical | Ordinal | Job satisfaction level (1 = Low, 4 = Very High) |
+| **WorkLifeBalance** | Categorical | Ordinal | Work-life balance rating (1 = Bad, 4 = Best) |
+| **Age** | Numeric | Discrete | Age of the employee (in years) |
+| **YearsAtCompany** | Numeric | Discrete | Number of years the employee has worked at the company |
+| **TotalWorkingYears** | Numeric | Discrete | Total number of years of professional experience |
+| **NumCompaniesWorked** | Numeric | Discrete | Number of companies the employee has previously worked for |
+| **MonthlyIncome** | Numeric | Continuous | Monthly salary of the employee (in USD) |
+
+## 5. Example Data (First Few Observations)
+
+```{r head-data}
+head(data_selected, 5)
+```
+
+## 6. Conclusion
+
+We found the IBM HR employee attrition dataset suitable for the given task as it has simple yet sufficient variables to perform descriptive statistical analysis.
