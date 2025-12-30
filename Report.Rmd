@@ -1,57 +1,142 @@
 ---
-title: "Descriptive Statistical Analysis of the highest scoring IPL match"
+title: "IBM HR Employee Attrition Analysis"
+subtitle: "Statistical Computing Project"
+author: "Amaan Shaikh | Danish Ali Shaikh | Rajat Pandey"
+date: "`r Sys.Date()`"
 output:
   pdf_document:
     toc: true
-date: "`r Sys.Date()`"
+    toc_depth: 2
+    number_sections: true
+    fig_caption: yes
+geometry: "left=0.75in, right=0.75in, top=0.8in, bottom=0.8in"
+fontsize: 11pt
 ---
 
-```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
-# CLEAR ENVIRONMENT.
+```{r setup, include=FALSE}
+# CLEAR ENVIRONMENT
 rm(list = ls(all.names = TRUE))
 
-# LOAD PACKAGES
-
 # GLOBAL CHUNK OPTIONS
-# 'dev' checks if it's PDF to use high-quality rendering, otherwise standard
 knitr::opts_chunk$set(
-  echo = TRUE,
-  message = FALSE,
+  echo = FALSE,
   warning = FALSE,
+  message = FALSE,
+  fig.width = 7,
+  fig.height = 3.5,
   fig.align = "center",
-  fig.width = 6,
-  fig.height = 4
+  out.width = "90%"
 )
-
-# GGPLOT THEME
-theme_set(theme_minimal())  # check ?theme_bw for other themes available
 ```
-
-\newpage
 
 # Introduction
 
-This report presents a descriptive analysis of the highest-scoring IPL match between **Sunrisers
-Hyderabad** (SRH) and **Royal Challengers Bengaluru** (RCB) (15 April 2024), using ball-by-ball data. Each observation corresponds to a single delivery.
+The IBM HR Employee Attrition dataset serves as a sample of workforce data, organized as a data matrix of observations and qualitative and quantitative variables. This report performs a comprehensive descriptive statistical analysis to summarize the distribution of individual variables using frequencies, measures of location, and measures of dispersion. Bivariate techniques, including contingency tables and correlation coefficients, are applied to investigate the joint behavior and co-dependency between employee attributes and attrition. Furthermore, simple linear regression is utilized to model the linear relationship between tenure and monthly income by estimating the regression coefficients.
 
-# Data Loading and Preprocessing
-```{r data-loading-and-processing}
-ipl_data <- read.csv("data/IPL.csv") # Load the IPL data. We do not need external packages for reading `CSV`.
+## Dataset & Data Preparation
+We analyze ten key variables classified into the following datatypes :
 
-# Aggregate "Current Run Rate" variable.
-ipl_data$current_run_rate <- round(ipl_data$team_runs / ipl_data$ball_no, 2)
+- **Nominal**: `Attrition`, `OverTime`
+- **Ordinal**: `JobLevel` (1-5), `JobSatisfaction` (1-4), `WorkLifeBalance` (1-4)
+- **Numeric (Discrete)**: `Age`, `YearsAtCompany`, `TotalWorkingYears`, `NumCompaniesWorked`
+- **Numeric (Continuous)**: `MonthlyIncome`
 
-included_columns <- c("batter", "bowler", "batter_balls", "batter_runs", "batting_team",
-                      "current_run_rate", "over", "runs_total", "team_runs")
+```{r load-data, echo=TRUE}
+# Load data and select variables
+hr <- read.csv("WA_Fn-UseC_-HR-Employee-Attrition.csv", stringsAsFactors = FALSE)
+hr_sub <- hr[, c("Attrition", "OverTime", "JobLevel", "JobSatisfaction", 
+                 "WorkLifeBalance","Age", "YearsAtCompany", "TotalWorkingYears", 
+                 "NumCompaniesWorked", "MonthlyIncome")]
 
-# We will work with a single match i.e., SRH vs RCB, 15th April 2024.
-match <- subset(x = ipl_data, subset = match_id == 1426268, select = included_columns)
+# Convert data types
+hr_sub$Attrition <- factor(hr_sub$Attrition)
+hr_sub$OverTime  <- factor(hr_sub$OverTime)
+hr_sub$JobLevel <- factor(hr_sub$JobLevel, levels = 1:5, ordered = TRUE)
+hr_sub$JobSatisfaction <- factor(hr_sub$JobSatisfaction, levels = 1:4, ordered = TRUE)
+hr_sub$WorkLifeBalance <- factor(hr_sub$WorkLifeBalance, levels = 1:4, ordered = TRUE)
 ```
 
 ## Data Summary
+
 ```{r data-summary}
-head(match)
-cat("Dataset dimensions:", nrow(match), "rows x", ncol(match), "columns")
+# Dataset dimensions
+dim_table <- data.frame(
+  Rows = nrow(hr_sub),
+  Columns = ncol(hr_sub)
+)
+
+knitr::kable(dim_table, caption = "Dataset Dimensions")
+
+# Summary statistics
+summary(hr_sub)
+
+# First 6 rows
+knitr::kable(
+  t(head(hr_sub)),
+  caption = "First 6 Observations (Transposed View)",
+  booktabs = TRUE
+)
 ```
+
 # Univariate Analysis
-## Batter - Absolute frequency of balls faced.
+
+Univariate analysis examines each variable individually to understand its distribution, measures of location & measures of dispersion.
+
+## Categorical and Ordinal Variables
+
+### Attrition Status
+
+Here we tabulate the absolute and relative frequencies of employees who left the company versus those who stayed.
+```{r attrition-freq}
+# Frequency and proportion table
+attrition_tab <- as.data.frame(table(hr_sub$Attrition))
+colnames(attrition_tab) <- c("Attrition", "Frequency")
+
+attrition_tab$Proportion <- round(
+  attrition_tab$Frequency / sum(attrition_tab$Frequency), 3
+)
+
+knitr::kable(
+  attrition_tab,
+  caption = "Attrition Status: Frequency and Proportion",
+  align = c("l", "c", "c"),
+  format = "markdown"
+)
+```
+
+### Overtime Status
+This shows the distribution of employees working overtime versus standard hours.
+```{r overtime-freq}
+# Frequency and proportion table
+overtime_tab <- as.data.frame(table(hr_sub$OverTime))
+colnames(overtime_tab) <- c("OverTime", "Frequency")
+
+overtime_tab$Proportion <- round(
+  overtime_tab$Frequency / sum(overtime_tab$Frequency), 3
+)
+
+knitr::kable(
+  overtime_tab,
+  caption = "Overtime Status: Frequency and Proportion",
+  align = c("l", "c", "c"),
+  format = "markdown"
+)
+```
+
+### 3.1.3 Job Level (Ordinal)
+
+The frequency distributions reveal employee composition. The attrition rate indicates what proportion of employees left the company. Job level cumulative frequencies show the hierarchical distribution from entry-level to senior positions.
+
+```{r joblevel-freq}
+# Frequency table with percentages and cumulative frequencies
+joblevel_freq <- as.data.frame(table(hr_sub$JobLevel))
+colnames(joblevel_freq) <- c("Job Level", "Frequency")
+joblevel_freq$Percentage <- round(100 * joblevel_freq$Frequency / sum(joblevel_freq$Frequency), 2)
+joblevel_freq$`Cumulative Frequency` <- cumsum(joblevel_freq$Frequency)
+joblevel_freq$`Cumulative %` <- cumsum(joblevel_freq$Percentage)
+
+knitr::kable(joblevel_freq,
+             caption = "Job Level Distribution (Ordinal)",
+             align = c('c', 'c', 'c', 'c', 'c'),
+             format = "markdown")
+```

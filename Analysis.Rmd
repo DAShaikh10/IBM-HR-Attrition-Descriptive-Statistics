@@ -1,0 +1,309 @@
+---
+title: "IBM HR Employee Attrition Analysis"
+subtitle: "Statistical Computing Group Project"
+author: "Group Members 1, 2, & 3"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    fig_caption: yes
+    keep_tex: no
+geometry: "left=0.75in, right=0.75in, top=0.8in, bottom=0.8in"
+fontsize: 11pt
+---
+
+```{r setup, include=FALSE}
+# CLEAR ENVIRONMENT
+rm(list = ls(all.names = TRUE))
+
+# GLOBAL CHUNK OPTIONS
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 6,
+  fig.height = 4,
+  fig.align = "center",
+	out.width = "75%"
+)
+```
+
+# Executive Summary
+
+This report analyzes the IBM HR Employee Attrition dataset to identify factors contributing to employee turnover. The analysis is divided into three thematic areas:
+
+- **Work Environment:** Employee sentiment and work-life balance.
+- **Financial Structure:** Compensation and job hierarchy.
+- **Demographics:** Age profiles and tenure modeling.
+
+# 1. Introduction and Data Preparation
+
+We analyze 8 key variables split into three categories.
+
+```{r load-data}
+# Load data
+hr <- read.csv("WA_Fn-UseC_-HR-Employee-Attrition.csv", stringsAsFactors = FALSE)
+
+# Select only the 8 variables defined in the Group Plan
+hr_sub <- hr[, c(
+  # Member 1: Work Environment
+  "Attrition", "JobSatisfaction", "WorkLifeBalance", 
+  # Member 2: Financial Structure
+  "JobLevel", "MonthlyIncome", "OverTime",
+  # Member 3: Demographics
+  "Age", "YearsAtCompany"
+)]
+
+# --- DATA PREPARATION ---
+# Convert Categorical (Nominal)
+hr_sub$Attrition <- factor(hr_sub$Attrition)
+hr_sub$OverTime  <- factor(hr_sub$OverTime)
+
+# Convert Categorical (Ordinal) - Ensuring order for logical plotting
+hr_sub$JobLevel <- factor(hr_sub$JobLevel, levels=1:5, ordered = TRUE)
+hr_sub$JobSatisfaction <- factor(hr_sub$JobSatisfaction, levels=1:4, ordered = TRUE)
+hr_sub$WorkLifeBalance <- factor(hr_sub$WorkLifeBalance, levels=1:4, ordered = TRUE)
+```
+
+# 2. Univariate Analysis
+
+This section explores the distribution of variables within each thematic area.
+
+## 2.1 Work Environment (Member 1)
+
+**Focus:** Attrition (Target), Job Satisfaction, Work-Life Balance.
+
+### Attrition Status
+
+```{r attrition-status}
+# Frequency Table
+attr_counts <- table(hr_sub$Attrition)
+attr_props <- prop.table(attr_counts)
+
+attr_tab <- data.frame(
+  Count = as.numeric(attr_counts),
+  Proportion = round(as.numeric(attr_props), 4)
+)
+
+rownames(attr_tab) <- names(attr_counts)
+knitr::kable(attr_tab, caption = "Target Variable: Attrition Distribution")
+
+# Barplot
+barplot(attr_counts, main="Attrition Counts", col=c("lightblue", "salmon"), ylab="Frequency")
+```
+
+### Employee Sentiment (Satisfaction & Balance)
+
+```{r satisfaction-balance}
+# Job Satisfaction
+js_counts <- table(hr_sub$JobSatisfaction)
+# Work Life Balance
+wlb_counts <- table(hr_sub$WorkLifeBalance)
+
+par(mfrow=c(1,2))
+barplot(js_counts, main="Job Satisfaction (1-4)", col="skyblue", xlab="Level")
+barplot(wlb_counts, main="Work-Life Balance (1-4)", col="lightgreen", xlab="Level")
+par(mfrow=c(1,1))
+```
+
+## 2.2 Financial & Structural (Member 2)
+
+**Focus:** Job Level, Overtime, Monthly Income.
+
+### Structural Variables
+
+```{r joblevel-overtime}
+# Job Level Table
+jl_counts <- table(hr_sub$JobLevel)
+knitr::kable(addmargins(jl_counts), caption = "Distribution of Job Levels")
+
+# Overtime Table
+ot_counts <- table(hr_sub$OverTime)
+ot_props <- prop.table(ot_counts)
+ot_tab <- data.frame(Count=as.numeric(ot_counts), Percent=round(as.numeric(ot_props)*100, 2))
+rownames(ot_tab) <- names(ot_counts)
+knitr::kable(ot_tab, caption = "Overtime Status")
+```
+
+### Monthly Income Distribution
+
+```{r income-distribution}
+# Hist and Boxplot for Income
+par(mfrow=c(1,2))
+hist(hr_sub$MonthlyIncome, main="Income Histogram", xlab="Income", col="gray", border="white")
+boxplot(hr_sub$MonthlyIncome, main="Income Boxplot", col="lightgray")
+par(mfrow=c(1,1))
+
+# Descriptive Stats
+inc_stats <- data.frame(
+  Mean = mean(hr_sub$MonthlyIncome),
+  Median = median(hr_sub$MonthlyIncome),
+  SD = sd(hr_sub$MonthlyIncome),
+  IQR = IQR(hr_sub$MonthlyIncome)
+)
+knitr::kable(inc_stats, caption = "Descriptive Statistics: Monthly Income")
+```
+
+## 2.3 Demographics (Member 3)
+
+**Focus:** Age, Years at Company.
+
+```{r demographics}
+par(mfrow=c(2,2))
+# Age Plots
+hist(hr_sub$Age, main="Age Dist.", xlab="Age", col="wheat")
+boxplot(hr_sub$Age, main="Age Boxplot", col="wheat")
+# Tenure Plots
+hist(hr_sub$YearsAtCompany, main="Tenure Dist.", xlab="Years", col="lavender")
+boxplot(hr_sub$YearsAtCompany, main="Tenure Boxplot", col="lavender")
+par(mfrow=c(1,1))
+```
+
+# 3. Bivariate Analysis
+
+We now investigate how these factors relate to employee attrition.
+
+## 3.1 Impact of Sentiment on Attrition (Member 1)
+
+Does low satisfaction or poor work-life balance drive attrition?
+
+```{r job-sat-vs-attrition}
+# Job Sat vs Attrition
+tab_js_attr <- table(hr_sub$Attrition, hr_sub$JobSatisfaction)
+knitr::kable(tab_js_attr, caption = "Attrition by Job Satisfaction Level")
+
+# Grouped Barplot
+barplot(tab_js_attr, beside=TRUE, 
+  main="Attrition by Job Satisfaction", 
+  legend=rownames(tab_js_attr), 
+  xlab="Satisfaction Level", col=c("lightblue", "salmon"))
+```
+
+## 3.2 Financial Factors & Attrition (Member 2)
+
+Are over-worked or under-paid employees leaving?
+
+### Overtime and Attrition
+
+```{r overtime-attrition}
+# Contingency Table
+tab_ot_attr <- table(hr_sub$Attrition, hr_sub$OverTime)
+# Column Proportions (Relative)
+tab_ot_prop <- prop.table(tab_ot_attr, margin=2)
+knitr::kable(round(tab_ot_prop, 2), caption = "Proportion of Attrition within Overtime Groups")
+
+barplot(tab_ot_attr, beside=TRUE,
+  main="Attrition by Overtime Status",
+  legend=rownames(tab_ot_attr),
+  col=c("lightblue", "salmon"))
+```
+
+### Income and Attrition
+
+```{r income-attrition}
+# Boxplot of Income vs Attrition
+boxplot(MonthlyIncome ~ Attrition, data=hr_sub,
+  main="Monthly Income by Attrition Status",
+  col=c("lightblue", "salmon"),
+  ylab="Income")
+
+# Stats
+inc_by_attr <- tapply(hr_sub$MonthlyIncome, hr_sub$Attrition, median)
+knitr::kable(data.frame(Median_Income=inc_by_attr), caption="Median Income by Attrition Group")
+```
+
+## 3.3 Demographics & Attrition (Member 3)
+
+Are younger or newer employees more likely to leave?
+
+```{r demographics-attrition}
+# Age vs Attrition
+boxplot(Age ~ Attrition, data=hr_sub,
+  main="Age Distribution by Attrition",
+  col=c("lightblue", "salmon"))
+
+# Tenure vs Attrition
+boxplot(YearsAtCompany ~ Attrition, data=hr_sub,
+  main="Years at Company by Attrition",
+  col=c("lightblue", "salmon"))
+```
+
+# 4. Linear Regression Analysis (Member 3)
+
+Finally, we model the relationship between Tenure (Predictor) and Income (Response) to understand how compensation grows with time at the company.
+
+Model: $MonthlyIncome = \beta_0 + \beta_1(YearsAtCompany) + \epsilon$
+
+```{r regression}
+# Fit Linear Model
+lm_model <- lm(MonthlyIncome ~ YearsAtCompany, data = hr_sub)
+summary(lm_model)
+```
+
+## Visualization
+
+```{r regression-plot}
+plot(hr_sub$YearsAtCompany, hr_sub$MonthlyIncome,
+     main = "Regression: Income vs Tenure",
+     xlab = "Years at Company", ylab = "Monthly Income",
+     pch = 19, col = scales::alpha("gray", 0.5), cex = 0.6)
+abline(lm_model, col = "red", lwd = 2)
+```
+
+## Predictions
+
+We predict the expected income for employees with 2, 5, 10, and 20 years of tenure.
+
+```{r regression-predictions}
+new_data <- data.frame(YearsAtCompany = c(2, 5, 10, 20))
+preds <- predict(lm_model, newdata = new_data)
+
+pred_results <- data.frame(
+  Tenure_Years = new_data$YearsAtCompany,
+  Predicted_Income = round(preds, 2)
+)
+knitr::kable(pred_results, caption = "Income Predictions based on Tenure")
+```
+
+knitr::kable(round(tab_ot_prop, 2), caption = "Proportion of Attrition within Overtime Groups")
+
+barplot(tab_ot_attr, beside=TRUE,
+        main="Attrition by Overtime Status",
+        legend=rownames(tab_ot_attr),
+        col=c("lightblue", "salmon"))
+Income and AttritionCode snippet# Boxplot of Income vs Attrition
+boxplot(MonthlyIncome ~ Attrition, data=hr_sub,
+        main="Monthly Income by Attrition Status",
+        col=c("lightblue", "salmon"),
+        ylab="Income")
+
+# Stats
+inc_by_attr <- tapply(hr_sub$MonthlyIncome, hr_sub$Attrition, median)
+knitr::kable(data.frame(Median_Income=inc_by_attr), caption="Median Income by Attrition Group")
+3.3 Demographics & Attrition (Member 3)Are younger or newer employees more likely to leave?Code snippet# Age vs Attrition
+boxplot(Age ~ Attrition, data=hr_sub,
+        main="Age Distribution by Attrition",
+        col=c("lightblue", "salmon"))
+
+# Tenure vs Attrition
+boxplot(YearsAtCompany ~ Attrition, data=hr_sub,
+        main="Years at Company by Attrition",
+        col=c("lightblue", "salmon"))
+4. Linear Regression Analysis (Member 3)Finally, we model the relationship between Tenure (Predictor) and Income (Response) to understand how compensation grows with time at the company.Model: $MonthlyIncome = \beta_0 + \beta_1(YearsAtCompany) + \epsilon$Code snippet# Fit Linear Model
+lm_model <- lm(MonthlyIncome ~ YearsAtCompany, data = hr_sub)
+summary(lm_model)
+Visualization:Code snippetplot(hr_sub$YearsAtCompany, hr_sub$MonthlyIncome,
+     main = "Regression: Income vs Tenure",
+     xlab = "Years at Company", ylab = "Monthly Income",
+     pch = 19, col = alpha("gray", 0.5), cex = 0.6)
+abline(lm_model, col = "red", lwd = 2)
+Predictions:We predict the expected income for employees with 2, 5, 10, and 20 years of tenure.Code snippetnew_data <- data.frame(YearsAtCompany = c(2, 5, 10, 20))
+preds <- predict(lm_model, newdata = new_data)
+
+pred_results <- data.frame(
+  Tenure_Years = new_data$YearsAtCompany,
+  Predicted_Income = round(preds, 2)
+)
+knitr::kable(pred_results, caption = "Income Predictions based on Tenure")
