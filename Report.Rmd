@@ -23,8 +23,7 @@ knitr::opts_chunk$set(
   echo = FALSE,
   warning = FALSE,
   message = FALSE,
-  fig.align = "center",
-  out.width = "90%"
+  fig.align = "center"
 )
 
 # ggplot theme.
@@ -134,7 +133,7 @@ This section performs a uni-variate analysis to characterize employee sentiment 
 
 ### Attrition Status (Binary Nominal)
  
-```{r attrition-univariate, echo = FALSE, fig.height=3, fig.width=5}
+```{r attrition-univariate, echo = FALSE, fig.cap = 'Bar plot of Attrition Status illustrating a significant class imbalance with high employee retention (83.9%).', fig.height = 2.5, fig.width = 3}
 print_freq_table(hr$Attrition, "Attrition Status")
 
 ggplot(hr, aes(x = Attrition, fill = Attrition)) +
@@ -148,6 +147,8 @@ ggplot(hr, aes(x = Attrition, fill = Attrition)) +
        x = "Attrition Status", 
        y = "Absolute Frequency")
 ```
+
+**Interpretation:** The analysis reveals a significant class imbalance, with 1,233 (83.9%) active employees versus 237 (16.1%) attrition cases. This distribution confirms a stable workforce and establishes a realistic baseline turnover rate for subsequent bivariate comparisons.
 
 ### Job Satisfaction (Ordinal)
 
