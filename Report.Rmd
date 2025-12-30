@@ -10,6 +10,7 @@ header-includes:
   - \titlespacing*{\subsection}{0pt}{1.0ex}{0.6ex}
   - \titlespacing*{\subsubsection}{0pt}{0.8ex}{0.4ex}
   - \renewcommand{\arraystretch}{0.8}
+  - \usepackage{float}
 output:
   pdf_document:
     number_sections: true
@@ -282,7 +283,7 @@ This section analyzes Age and Years at Company using descriptive statistics and 
 
 ### Age (Numeric)
 
-```{r age-univariate, fig.cap = "Distribution of employee age. The boxplot (left) summarizes dispersion and outliers, and the empirical cumulative distribution function (right) shows the cumulative age distribution."}
+```{r age-univariate, fig.cap = "Distribution of employee age. The boxplot (left) summarizes dispersion and outliers, and the empirical cumulative distribution function (right) shows the cumulative age distribution.", fig.pos = "H"}
 age_stats <- data.frame(
   Variance = round(var(hr$Age), 2),
   SD = round(sd(hr$Age), 2),
@@ -317,7 +318,7 @@ par(mfrow = c(1, 1))
 
 ### Years At Company (Numeric)
 
-```{r years-at-company-univariate, echo=FALSE, fig.cap="Distribution of years at company showing low median tenure and a long right tail with high-tenure outliers."}
+```{r years-at-company-univariate, echo=FALSE, fig.cap="Distribution of years at company showing low median tenure and a long right tail with high-tenure outliers.", fig.pos = "H"}
 yac_stats <- data.frame(
   Mean     = round(mean(hr$YearsAtCompany), 2),
   Median   = round(median(hr$YearsAtCompany), 2),
