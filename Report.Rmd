@@ -5,11 +5,17 @@ author: "Amaan Shaikh | Danish Ali Shaikh | Rajat Pandey"
 output:
   pdf_document:
     number_sections: true
+fontsize: 11pt
+geometry: margin=0.5in
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 # Clear Environment.
 rm(list = ls(all.names = TRUE))
+
+# Load Packages.
+library(dplyr)
+library(ggplot2)
 
 # Global Chunk Options. [Ref: https://lms.bht-berlin.de/mod/folder/view.php?id=1419650]
 # 'dev' checks if it's PDF to use high-quality rendering, otherwise standard.
@@ -17,11 +23,14 @@ knitr::opts_chunk$set(
   echo = FALSE,
   warning = FALSE,
   message = FALSE,
-  fig.width = 7,
+  fig.width = 4,
   fig.height = 3.5,
   fig.align = "center",
   out.width = "90%"
 )
+
+# ggplot theme.
+theme_set(theme_minimal())
 ```
 
 ```{r helpers, echo=FALSE}
@@ -58,7 +67,7 @@ print_freq_table <- function(x, var_name, caption = NULL, show_cumulative = FALS
   knitr::kable(
     df,
     caption = caption,
-    align = 'c', # Center align all columns.
+    align = c('l', 'c', 'c', 'c', 'c'),
     format = "markdown"
   )
 }
@@ -123,24 +132,35 @@ knitr::kable(t(head(hr)), caption = "First six observations (Transposed View)")
 
 ## Target & Sentiment
 
-This section performs a univariate analysis to characterize employee sentiment and professional status, examining the frequency distributions of key qualitative variables.
+This section performs a uni-variate analysis to characterize employee sentiment and professional status, examining the frequency distributions of key qualitative variables.
 
 ### Attrition Status (Binary Nominal)
  
-```{r attrition-univariate, echo = FALSE}
+```{r attrition-univariate, echo = FALSE, fig.height=3, fig.width=5}
 print_freq_table(hr$Attrition, "Attrition Status")
-barplot(table(hr$Attrition))
+
+ggplot(hr, aes(x = Attrition, fill = Attrition)) +
+  # Bars
+  geom_bar(width = 0.7) +
+  # Labels (Counts inside bars)
+  geom_text(stat = 'count', aes(label = ..count..), vjust = 1.5, color = "white", fontface = "bold") +
+  # Colors & Titles
+  scale_fill_manual(values = c("steelblue", "firebrick")) +
+  labs(title = "Attrition Status Barplot", 
+       x = "Attrition Status", 
+       y = "Absolute Frequency")
 ```
 
 ### Job Satisfaction (Ordinal)
 
-```{r job-satisfaction-univariate, echo = FALSE}
+```{r job-satisfaction-univariate, echo = FALSE, results = 'asis'}
 print_freq_table(hr$JobSatisfaction, "Job Satisfaction", show_cumulative = TRUE)
 print_mode(hr$JobSatisfaction)
 ```
+
 ### Work Life Balance (Ordinal)
 
-```{r work-life-balance-univariate, echo = FALSE}
+```{r work-life-balance-univariate, echo = FALSE, results = 'asis'}
 print_freq_table(hr$WorkLifeBalance, "Work Life Balance", show_cumulative = TRUE)
 print_mode(hr$WorkLifeBalance)
 ```
