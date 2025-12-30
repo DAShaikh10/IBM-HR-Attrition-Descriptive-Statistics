@@ -7,6 +7,12 @@ output:
     number_sections: true
 fontsize: 11pt
 geometry: margin=0.5in
+header-includes:
+  - \usepackage{titlesec}
+  - \titlespacing*{\section}{0pt}{1.2ex}{0.8ex}
+  - \titlespacing*{\subsection}{0pt}{1.0ex}{0.6ex}
+  - \titlespacing*{\subsubsection}{0pt}{0.8ex}{0.4ex}
+  - \renewcommand{\arraystretch}{0.8}
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -120,8 +126,9 @@ hr$WorkLifeBalance <- factor(hr$WorkLifeBalance,
 
 ## Data summary
 
+The dataset contains `r nrow(hr)` observations and `r ncol(hr)` variables.
+
 ```{r data-summary, echo = FALSE, results = 'asis'}
-paste("Dataset Dimensions:", nrow(hr), "rows x", ncol(hr), "columns.")
 knitr::kable(t(head(hr)), caption = "First six observations (Transposed View)")
 ```
 
@@ -166,7 +173,7 @@ print_mode(hr$WorkLifeBalance)
 
 ## Financial Structure
 
-What is the job structure and compensation?
+This section summarizes the job hierarchy, income distribution, and overtime status of employees using univariate descriptive statistics and graphical representations to describe the compensation structure and workload intensity.
 
 ### Job Level (Ordinal)
 
@@ -196,6 +203,8 @@ boxplot(
   horizontal = TRUE
 )
 
+par(mfrow = c(1, 1))
+
 inc_stats <- data.frame(
   Variance = round(var(hr$MonthlyIncome), 2),
   SD = round(sd(hr$MonthlyIncome), 2),
@@ -216,7 +225,7 @@ print_freq_table(hr$OverTime, "Over Time")
 ```
 ## Demographics
 
-Who are they (Time) and can we model their growth?
+This section analyzes Age and Years at Company using descriptive statistics and distributional plots to characterize employee demographic composition and tenure.
 
 ### Age (Numeric)
 
@@ -248,6 +257,7 @@ plot(
   col = "darkred",
   lwd = 2
 )
+par(mfrow = c(1, 1))
 ```
 ### Years At Company (Numeric)
 
@@ -281,6 +291,7 @@ plot(
   col = "purple",
   lwd = 2
 )
+par(mfrow = c(1, 1))
 ```
 
 # Bivariate Analysis
