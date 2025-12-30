@@ -42,10 +42,10 @@ theme_set(theme_minimal())
 
 # This function allows for generating absolute, relative,
 # cumulative absolute, cumulative relative frequencies as  a table.
-# 
+#
 # Arguments:
 #   x:  any R object for which frequencies are to be obtained.
-#   var_name: Variable name for which data is present in argument 'x'. 
+#   var_name: Variable name for which data is present in argument 'x'.
 #   caption: Caption for the generated table. OPTIONAL.
 #   show_cumulative: Required to be turned on in order to see cumulative
 #                    frequencies. OPTIONAL. DEFAULT: FALSE
@@ -55,32 +55,32 @@ print_freq_table <- function(x, var_name, caption = NULL,
                              show_cumulative = FALSE,
                              show_mode = FALSE) {
   x <- as.factor(x)
-  
+
   df <- as.data.frame(table(x))
   colnames(df) <- c(var_name, "Frequency")
-  
+
   df$Proportion <- round(100 * df$Frequency / sum(df$Frequency), 2)
-  
+
   if (show_cumulative) {
     df$`Cum. Freq.` <- cumsum(df$Frequency)
     df$`Cum. %` <- cumsum(df$Proportion)
   }
-  
+
   # Highlight mode ONLY if flag is TRUE
   if (show_mode) {
     mode_value <- df[[var_name]][which.max(df$Frequency)]
-    
+
     df[[var_name]] <- ifelse(
       df[[var_name]] == mode_value,
       paste0("**", df[[var_name]], " (Mode)**"),
       as.character(df[[var_name]])
     )
   }
-  
+
   if (is.null(caption)) {
     caption <- paste(var_name, "Frequency Table")
   }
-  
+
   knitr::kable(
     df,
     caption = caption,
@@ -97,6 +97,61 @@ print_mode <- function(x) {
   uniqv <- unique(x)
   uniqv[which.max(tabulate(match(x, uniqv)))]
 }
+
+# This function generates a descriptive statistics table, a boxplot, and an ECDF 
+# plot for a continuous numeric variable to visualize distribution and outliers.
+#
+# Arguments:
+#   data_vec:   a numeric vector containing the data to analyze (e.g., hr$Age).
+#   var_name:   a string used for plot titles and table captions (e.g., "Age").
+#   col_fill:   a string specifying the fill color for the boxplot.
+#   col_border: a string specifying the border and outlier color for the boxplot.
+#   col_line:   a string specifying the line color for the ECDF plot.
+analyze_numeric <- function(data_vec, var_name, col_fill, col_border, col_line) {
+  quants <- quantile(data_vec, probs = c(0.25, 0.5, 0.75))
+
+  stats_df <- data.frame(
+    Mean     = round(mean(data_vec), 2),
+    `1st Q`  = quants["25%"],
+    Median   = quants["50%"],
+    `3rd Q`  = quants["75%"],
+    Variance = round(var(data_vec), 2),
+    SD       = round(sd(data_vec), 2),
+    Range    = paste(range(data_vec), collapse = " – "),
+    IQR      = IQR(data_vec),
+    check.names = FALSE
+  )
+
+  rownames(stats_df) <- NULL
+
+  # We use print() so it renders even when called inside a function
+  print(knitr::kable(stats_df,
+                     align = 'c',
+                     caption = paste("Descriptive Statistics:", var_name, "(Location & Dispersion)"),
+                     format = "markdown"))
+
+  par(mfrow = c(1, 2))
+  par(mar = c(4, 4, 2, 1)) # Optional: Tighter margins
+
+  boxplot(data_vec,
+          main = paste("Boxplot of", var_name),
+          ylab = var_name,
+          col = col_fill,
+          border = col_border,
+          outlier.col = col_border)
+
+  plot(ecdf(data_vec),
+       main = paste("ECDF of", var_name),
+       xlab = var_name,
+       ylab = paste("F(", var_name, ")", sep=""),
+       col = col_line,
+       lwd = 2,
+       verticals = TRUE,
+       pch = NA)
+
+  # Reset Layout.
+  par(mfrow = c(1, 1))
+}
 ```
 
 # Introduction
@@ -108,10 +163,11 @@ We analyze **eight** key variables classified into the following datatypes :
 
 - **Categorical - Nominal**: `Attrition`, `OverTime`
 - **Categorical - Ordinal**: `JobLevel` (1-5), `JobSatisfaction` (1-4), `WorkLifeBalance` (1-4)
-- **Numeric - Discrete**: `Age`, `YearsAtCompany`
-- **Numeric - Continuous**: `MonthlyIncome`
+- **Numeric - Discrete**: `YearsAtCompany`
+- **Numeric - Continuous**: `Age`, `MonthlyIncome`
 
 ```{r load-data}
+
 raw_data     <- read.csv("data/ibm-hr-attrition.csv", stringsAsFactors = FALSE)
 hr           <- raw_data[, c("Attrition", "OverTime", "JobLevel",
                              "JobSatisfaction", "WorkLifeBalance", "Age",
@@ -119,6 +175,7 @@ hr           <- raw_data[, c("Attrition", "OverTime", "JobLevel",
 ```
 
 ```{r preprocessing}
+
 # Nominal Variables.
 hr$Attrition <- as.factor(hr$Attrition)
 hr$OverTime  <- as.factor(hr$OverTime)
@@ -143,6 +200,7 @@ hr$WorkLifeBalance <- factor(hr$WorkLifeBalance,
 The dataset contains `r nrow(hr)` observations and `r ncol(hr)` variables.
 
 ```{r data-summary}
+
 knitr::kable(t(head(hr)),
              caption = "First six observations (Transposed View)")
 ```
@@ -158,6 +216,7 @@ This section performs a uni-variate analysis to characterize employee sentiment 
 ### Attrition Status (Binary Nominal)
  
 ```{r attrition-univariate, fig.cap = 'Bar plot of Attrition Status illustrating a significant class imbalance with high employee retention', fig.height = 2.5, fig.width = 3}
+
 print_freq_table(hr$Attrition, "Attrition Status")
 
 ggplot(hr, aes(x = Attrition, fill = Attrition)) +
@@ -177,6 +236,7 @@ ggplot(hr, aes(x = Attrition, fill = Attrition)) +
 ### Job Satisfaction (Ordinal)
 
 ```{r job-satisfaction-univariate, results = 'asis'}
+
 print_freq_table(hr$JobSatisfaction,
                  "Job Satisfaction",
                  show_cumulative = TRUE,
@@ -189,6 +249,7 @@ print_freq_table(hr$JobSatisfaction,
 ### Work Life Balance (Ordinal)
 
 ```{r work-life-balance-univariate, results = 'asis'}
+
 print_freq_table(hr$WorkLifeBalance,
                  "Work Life Balance",
                  show_cumulative = TRUE,
@@ -204,6 +265,7 @@ This section summarizes the job hierarchy, income distribution, and overtime sta
 ### Job Level (Ordinal)
 
 ```{r job-level-univariate}
+
 print_freq_table(hr$JobLevel,
                  "Job Level",
                  show_cumulative = TRUE,
@@ -215,6 +277,7 @@ print_freq_table(hr$JobLevel,
 ### Monthly Income (Continuous)
 
 ```{r monthly-income-univariate, fig.cap = 'Histogram of Monthly Income. The distribution is right-skewed, indicated by the Mean (Red) being higher than the Median (Blue)', fig.height = 3.5, fig.width = 4}
+
 avg_inc <- mean(hr$MonthlyIncome)
 med_inc <- median(hr$MonthlyIncome)
 quants  <- quantile(hr$MonthlyIncome, probs = c(0.25, 0.5, 0.75))
@@ -272,6 +335,7 @@ knitr::kable(
 ### Over Time (Binary Nominal)
 
 ```{r overtime-univariate}
+
 print_freq_table(hr$OverTime, "Over Time")
 ```
 
@@ -281,74 +345,28 @@ print_freq_table(hr$OverTime, "Over Time")
 
 This section analyzes Age and Years at Company using descriptive statistics and distributional plots to characterize employee demographic composition and tenure.
 
-### Age (Numeric)
+### Age (Continuous)
 
-```{r age-univariate, fig.cap = "Distribution of employee age. The boxplot (left) summarizes dispersion and outliers, and the empirical cumulative distribution function (right) shows the cumulative age distribution.", fig.pos = "H"}
-age_stats <- data.frame(
-  Variance = round(var(hr$Age), 2),
-  SD = round(sd(hr$Age), 2),
-  Range = paste(range(hr$Age), collapse = " – "),
-  IQR = IQR(hr$Age)
-)
-knitr::kable(age_stats, caption = "Descriptive Statistics: Age")
+```{r age-univariate, results = 'asis', fig.cap = "Distribution of employee age. The boxplot (left) summarizes dispersion and outliers, and the empirical cumulative distribution function (right) shows the cumulative age distribution", fig.pos = "H"}
 
-par(mfrow = c(1, 2))
-
-boxplot(
-  hr$Age,
-  main = "Boxplot of Age",
-  ylab = "Age",
-  col = "lightblue",
-  border = "steelblue",
-  outlier.col = "darkblue"
-)
-
-plot(
-  ecdf(hr$Age),
-  main = "ECDF of Age",
-  xlab = "Age",
-  ylab = "F(Age)",
-  col = "darkred",
-  lwd = 2
-)
-par(mfrow = c(1, 1))
+analyze_numeric(data_vec   = hr$Age,
+                var_name   = "Age",
+                col_fill   = "lightblue",
+                col_border = "steelblue",
+                col_line   = "darkred")
 ```
 
-**Interpretation:** The majority of the workforce (71.7%, n=1,054) does not work overtime. However, a significant minority of 28.3% (n=416) actively engages in overtime, representing a distinct subgroup that may be more susceptible to burnout or attrition.
+**Interpretation:** The age distribution is approximately symmetric and bell-shaped, spanning from 18 to 60 years with a standard deviation of 9.14. The moderate variability (IQR = 13) indicates that the middle 50% of the workforce is concentrated within a relatively narrow age band, suggesting a demographically balanced employee base without extreme skewness.
 
 ### Years At Company (Numeric)
 
-```{r years-at-company-univariate, echo=FALSE, fig.cap="Distribution of years at company showing low median tenure and a long right tail with high-tenure outliers.", fig.pos = "H"}
-yac_stats <- data.frame(
-  Mean     = round(mean(hr$YearsAtCompany), 2),
-  Median   = round(median(hr$YearsAtCompany), 2),
-  Variance = round(var(hr$YearsAtCompany), 2),
-  SD       = round(sd(hr$YearsAtCompany), 2),
-  IQR      = IQR(hr$YearsAtCompany),
-  Range    = paste(range(hr$YearsAtCompany), collapse = " – ")
-)
+```{r years-at-company-univariate, results = 'asis', fig.cap="Distribution of years at company showing low median tenure and a long right tail with high-tenure outliers", fig.pos = "H"}
 
-knitr::kable(yac_stats, caption = "Descriptive Statistics: Years at Company")
-
-par(mfrow = c(1, 2))
-boxplot(
-  hr$YearsAtCompany,
-  main = "Boxplot of Years at Company",
-  ylab = "Years at Company",
-  col = "lightgreen",
-  border = "darkgreen",
-  outlier.col = "darkgreen"
-)
-
-plot(
-  ecdf(hr$YearsAtCompany),
-  main = "ECDF of Years at Company",
-  xlab = "Years at Company",
-  ylab = "F(Years at Company)",
-  col = "purple",
-  lwd = 2
-)
-par(mfrow = c(1, 1))
+analyze_numeric(data_vec   = hr$YearsAtCompany,
+                var_name   = "Years at Company",
+                col_fill   = "lightgreen",
+                col_border = "darkgreen",
+                col_line   = "purple")
 ```
 
 **Interpretation:** The distribution of tenure is strongly right-skewed, evidenced by the Mean (7.01) exceeding the Median (5.0). The boxplot reveals significant upper outliers (up to 40 years), indicating that while the typical employee has a tenure of 5 years or less, a distinct cohort of long-term veterans remains, heavily influencing the average."
