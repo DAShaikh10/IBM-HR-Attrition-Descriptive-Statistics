@@ -14,12 +14,13 @@ rm(list = ls(all.names = TRUE))
 # Global Chunk Options. [Ref: https://lms.bht-berlin.de/mod/folder/view.php?id=1419650]
 # 'dev' checks if it's PDF to use high-quality rendering, otherwise standard.
 knitr::opts_chunk$set(
-  echo = TRUE,
-  message = FALSE,
+  echo = FALSE,
   warning = FALSE,
+  message = FALSE,
+  fig.width = 7,
+  fig.height = 3.5,
   fig.align = "center",
-  fig.width = 6,
-  fig.height = 4
+  out.width = "90%"
 )
 ```
 
