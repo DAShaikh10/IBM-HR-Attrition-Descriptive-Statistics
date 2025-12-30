@@ -2,9 +2,6 @@
 title: "IBM HR Employee Attrition Descriptive Analysis"
 subtitle: "Statistical Computing Group Project"
 author: "Amaan Shaikh | Danish Ali Shaikh | Rajat Pandey"
-output:
-  pdf_document:
-    number_sections: true
 fontsize: 11pt
 geometry: margin=0.5in
 header-includes:
@@ -13,6 +10,9 @@ header-includes:
   - \titlespacing*{\subsection}{0pt}{1.0ex}{0.6ex}
   - \titlespacing*{\subsubsection}{0pt}{0.8ex}{0.4ex}
   - \renewcommand{\arraystretch}{0.8}
+output:
+  pdf_document:
+    number_sections: true
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -84,7 +84,7 @@ print_freq_table <- function(x, var_name, caption = NULL,
   knitr::kable(
     df,
     caption = caption,
-    align = 'c',
+    align = c('l', 'c', 'c', 'c', 'c'),
     format = "markdown"
   )
 }
@@ -154,7 +154,7 @@ This section performs a uni-variate analysis to characterize employee sentiment 
 
 ### Attrition Status (Binary Nominal)
  
-```{r attrition-univariate, echo = FALSE, fig.cap = 'Bar plot of Attrition Status illustrating a significant class imbalance with high employee retention (83.9%).', fig.height = 2.5, fig.width = 3}
+```{r attrition-univariate, echo = FALSE, fig.cap = 'Bar plot of Attrition Status illustrating a significant class imbalance with high employee retention', fig.height = 2.5, fig.width = 3}
 print_freq_table(hr$Attrition, "Attrition Status")
 
 ggplot(hr, aes(x = Attrition, fill = Attrition)) +
@@ -185,47 +185,66 @@ print_freq_table(hr$WorkLifeBalance, "Work Life Balance", show_cumulative = TRUE
 
 ## Financial Structure
 
-This section summarizes the job hierarchy, income distribution, and overtime status of employees using univariate descriptive statistics and graphical representations to describe the compensation structure and workload intensity.
+This section summarizes the job hierarchy, income distribution, and overtime status of employees using uni-variate descriptive statistics and graphical representations to describe the compensation structure and workload intensity.
 
 ### Job Level (Ordinal)
 
 ```{r job-level-univariate, echo = FALSE}
 print_freq_table(hr$JobLevel, "Job Level", show_cumulative = TRUE, show_mode = TRUE)
 ```
+
 ### Monthly Income (Continuous)
 
-```{r monthly-income-univariate, echo = FALSE}
-par(mfrow = c(1, 2))
+```{r monthly-income-univariate, echo = FALSE, fig.cap = 'Histogram of Monthly Income. The distribution is right-skewed, indicated by the Mean (Red) being higher than the Median (Blue)', fig.height = 3.5, fig.width = 4}
+avg_inc <- mean(hr$MonthlyIncome)
+med_inc <- median(hr$MonthlyIncome)
+quants  <- quantile(hr$MonthlyIncome, probs = c(0.25, 0.5, 0.75))
 
+# 2. Draw Histogram
 hist(
   hr$MonthlyIncome,
-  main = "Histogram of Income",
-  xlab = "Monthly Income",
+  main = "Distribution of Monthly Income",
+  xlab = "Monthly Income (USD)",
+  ylab = "Frequency",
   col = "steelblue",
-  border = "white"
+  border = "white",
+  # Increase Y-limit to ensure legend fits clearly
+  ylim = c(0, 400) 
 )
 
-boxplot(
-  hr$MonthlyIncome,
-  main = "Boxplot of Income",
-  ylab = "Income",
-  col = "tan",
-  border = "black",
-  horizontal = TRUE
-)
+# 3. Add Vertical Lines (Mean & Median)
+abline(v = avg_inc, col = "firebrick", lwd = 2, lty = 2) # Mean = Red Dashed
+abline(v = med_inc, col = "navy",      lwd = 2, lty = 1) # Median = Blue Solid
 
-par(mfrow = c(1, 1))
+# 4. Add Combined Legend
+legend("topright", 
+       legend = c(paste("Mean:", round(avg_inc, 0)), 
+                  paste("Median:", round(med_inc, 0))), 
+       col = c("firebrick", "navy"), 
+       lwd = 2, 
+       lty = c(2, 1), # Match line types (2=Dashed, 1=Solid)
+       bty = "n",
+       cex = 0.9)
 
+# 5. Create Expanded Statistics Table
 inc_stats <- data.frame(
+  Mean     = round(avg_inc, 2),
+  `1st Q`  = quants["25%"],
+  Median   = quants["50%"],
+  `3rd Q`  = quants["75%"],
   Variance = round(var(hr$MonthlyIncome), 2),
-  SD = round(sd(hr$MonthlyIncome), 2),
-  Range = paste(range(hr$MonthlyIncome), collapse = " – "),
-  IQR = IQR(hr$MonthlyIncome)
+  SD       = round(sd(hr$MonthlyIncome), 2),
+  Range    = paste(range(hr$MonthlyIncome), collapse = " – "),
+  IQR      = IQR(hr$MonthlyIncome)
 )
+
+# Remove row names (usually "25%" etc) for a cleaner table
+rownames(inc_stats) <- NULL
 
 knitr::kable(
   inc_stats,
-  caption = "Descriptive Statistics: Monthly Income"
+  caption = "Descriptive Statistics: Monthly Income (Location & Dispersion)",
+  align = 'c'
 )
 ```
 
