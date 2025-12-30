@@ -1,9 +1,10 @@
+# R project files and temporary files.
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 .DS_Store
 
-# Data files
-data/IPL.csv
+# Data folder.
+data/
 SRHvsRCB_2024.csv
