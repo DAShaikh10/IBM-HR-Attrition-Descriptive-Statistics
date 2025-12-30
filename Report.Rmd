@@ -143,7 +143,8 @@ hr$WorkLifeBalance <- factor(hr$WorkLifeBalance,
 The dataset contains `r nrow(hr)` observations and `r ncol(hr)` variables.
 
 ```{r data-summary, echo = FALSE, results = 'asis'}
-knitr::kable(t(head(hr)), caption = "First six observations (Transposed View)")
+knitr::kable(t(head(hr)),
+             caption = "First six observations (Transposed View)")
 ```
 
 # Univariate Analysis
@@ -158,15 +159,15 @@ This section performs a uni-variate analysis to characterize employee sentiment 
 print_freq_table(hr$Attrition, "Attrition Status")
 
 ggplot(hr, aes(x = Attrition, fill = Attrition)) +
-  # Bars
-  geom_bar(width = 0.7) +
-  # Labels (Counts inside bars)
-  geom_text(stat = 'count', aes(label = ..count..), vjust = 1.5, color = "white", fontface = "bold") +
-  # Colors & Titles
-  scale_fill_manual(values = c("steelblue", "firebrick")) +
-  labs(title = "Attrition Status Barplot", 
-       x = "Attrition Status", 
-       y = "Absolute Frequency")
+      # Bars
+      geom_bar(width = 0.7) +
+      # Labels (Counts inside bars)
+      geom_text(stat = 'count', aes(label = ..count..), vjust = 1.5, color = "white", fontface = "bold") +
+      # Colors & Titles
+      scale_fill_manual(values = c("steelblue", "firebrick")) +
+      labs(title = "Attrition Status Barplot", 
+           x = "Attrition Status", 
+           y = "Absolute Frequency")
 ```
 
 **Interpretation:** The analysis reveals a significant class imbalance, with 1,233 (83.9%) active employees versus 237 (16.1%) attrition cases. This distribution confirms a stable workforce and establishes a realistic baseline turnover rate for subsequent bivariate comparisons.
@@ -174,14 +175,25 @@ ggplot(hr, aes(x = Attrition, fill = Attrition)) +
 ### Job Satisfaction (Ordinal)
 
 ```{r job-satisfaction-univariate, echo = FALSE, results = 'asis'}
-print_freq_table(hr$JobSatisfaction, "Job Satisfaction", show_cumulative = TRUE, show_mode = TRUE)
+print_freq_table(hr$JobSatisfaction,
+                 "Job Satisfaction",
+                 show_cumulative = TRUE,
+                 show_mode = TRUE)
 ```
+
+**Interpretation:** The data indicates high employee morale, with "Very High" (31.2%, n=459) as the modal category. Cumulatively, over 61% of the workforce reports positive satisfaction (High or Very High), significantly outweighing the 19.7% who report Low satisfaction.
+
 
 ### Work Life Balance (Ordinal)
 
 ```{r work-life-balance-univariate, echo = FALSE, results = 'asis'}
-print_freq_table(hr$WorkLifeBalance, "Work Life Balance", show_cumulative = TRUE, show_mode = TRUE)
+print_freq_table(hr$WorkLifeBalance,
+                 "Work Life Balance",
+                 show_cumulative = TRUE,
+                 show_mode = TRUE)
 ```
+
+**Interpretation:** The data reveals a strong skew toward positive work-life balance, with "Better" (60.8%, n=893) as the dominant modal category. Cumulatively, 71.2% of the workforce falls into the top two tiers ("Better" or "Best"), while only 5.4% report a "Bad" balance.
 
 ## Financial Structure
 
@@ -192,6 +204,8 @@ This section summarizes the job hierarchy, income distribution, and overtime sta
 ```{r job-level-univariate, echo = FALSE}
 print_freq_table(hr$JobLevel, "Job Level", show_cumulative = TRUE, show_mode = TRUE)
 ```
+
+**Interpretation:** The workforce structure exhibits a distinct pyramidal hierarchy, heavily concentrated in early-career roles. Entry Level (36.9%, n=543) and Junior (36.3%, n=534) positions dominate, cumulatively accounting for 73.3% of the organization. In contrast, upper management is exclusive, with Executives representing only 4.7% of the total population.
 
 ### Monthly Income (Continuous)
 
@@ -248,11 +262,16 @@ knitr::kable(
 )
 ```
 
+**Interpretation:** The workforce structure exhibits a distinct pyramidal hierarchy, heavily concentrated in early-career roles. Entry Level (36.9%, n=543) and Junior (36.3%, n=534) positions dominate, cumulatively accounting for 73.3% of the organization. In contrast, upper management is exclusive, with Executives representing only 4.7% of the total population.
+
 ### Over Time (Binary Nominal)
 
 ```{r overtime-univariate, echo = FALSE}
 print_freq_table(hr$OverTime, "Over Time")
 ```
+
+**Interpretation:** The majority of the workforce (71.7%, n=1,054) does not work overtime. However, a significant minority of 28.3% (n=416) actively engages in overtime, representing a distinct subgroup that may be more susceptible to burnout or attrition.
+
 ## Demographics
 
 This section analyzes Age and Years at Company using descriptive statistics and distributional plots to characterize employee demographic composition and tenure.
@@ -289,6 +308,9 @@ plot(
 )
 par(mfrow = c(1, 1))
 ```
+
+**Interpretation:** The majority of the workforce (71.7%, n=1,054) does not work overtime. However, a significant minority of 28.3% (n=416) actively engages in overtime, representing a distinct subgroup that may be more susceptible to burnout or attrition.
+
 ### Years At Company (Numeric)
 
 ```{r years-at-company-univariate}
@@ -323,6 +345,8 @@ plot(
 )
 par(mfrow = c(1, 1))
 ```
+
+**Interpretation:** The distribution of tenure is strongly right-skewed, evidenced by the Mean (7.01) exceeding the Median (5.0). The boxplot reveals significant upper outliers (up to 40 years), indicating that while the typical employee has a tenure of 5 years or less, a distinct cohort of long-term veterans remains, heavily influencing the average."
 
 # Bivariate Analysis
 
