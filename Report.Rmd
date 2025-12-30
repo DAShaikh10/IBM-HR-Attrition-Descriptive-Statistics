@@ -159,16 +159,22 @@ print_mode(hr$JobLevel)
 ### Monthly Income (Continuous)
 
 ```{r monthly-income-univariate, echo = FALSE}
-hist(hr$MonthlyIncome,
-     xlab = "Monthly Income in USD",
-     ylab = "Count of Employees")
+par(mfrow = c(1, 2))
 
-boxplot(hr$MonthlyIncome)
+hist(hr$MonthlyIncome, main="Histogram of Income", xlab="Monthly Income", 
+     col="lightgray", border="white")
 
-var(hr$MonthlyIncome)
-sd(hr$MonthlyIncome)
-range(hr$MonthlyIncome)
-IQR(hr$MonthlyIncome)
+boxplot(hr$MonthlyIncome, main="Boxplot of Income", ylab="Income", 
+        col="lightgray", horizontal=TRUE)
+
+inc_stats <- data.frame(
+  Variance = round(var(hr$MonthlyIncome), 2),
+  SD = round(sd(hr$MonthlyIncome), 2),
+  Range = paste(range(hr$MonthlyIncome), collapse = " – "),
+  IQR = IQR(hr$MonthlyIncome)
+)
+
+knitr::kable(inc_stats, caption = "Descriptive Statistics: Monthly Income")
 ```
 
 ### Over Time (Binary Nominal)
@@ -183,24 +189,34 @@ Who are they (Time) and can we model their growth?
 ### Age (Numeric)
 
 ```{r age-univariate}
-mean(hr$Age)
-median(hr$Age)
-var(hr$Age)
-sd(hr$Age)
-IQR(hr$Age)
-range(hr$Age)
+age_stats <- data.frame(
+  Variance = round(var(hr$Age), 2),
+  SD = round(sd(hr$Age), 2),
+  Range = paste(range(hr$Age), collapse = " – "),
+  IQR = IQR(hr$Age)
+)
+knitr::kable(age_stats, caption = "Descriptive Statistics: Age")
+
+par(mfrow = c(1, 2))
+
 boxplot(hr$Age)
 plot(ecdf(hr$Age))
 ```
 ### Years At Company (Numeric)
 
 ```{r years-at-company-univariate}
-mean(hr$YearsAtCompany)
-median(hr$YearsAtCompany)
-var(hr$YearsAtCompany)
-sd(hr$YearsAtCompany)
-IQR(hr$YearsAtCompany)
-range(hr$YearsAtCompany)
+yac_stats <- data.frame(
+  Mean     = round(mean(hr$YearsAtCompany), 2),
+  Median   = round(median(hr$YearsAtCompany), 2),
+  Variance = round(var(hr$YearsAtCompany), 2),
+  SD       = round(sd(hr$YearsAtCompany), 2),
+  IQR      = IQR(hr$YearsAtCompany),
+  Range    = paste(range(hr$YearsAtCompany), collapse = " – ")
+)
+
+knitr::kable(yac_stats, caption = "Descriptive Statistics: Years at Company")
+
+par(mfrow = c(1, 2))
 boxplot(hr$YearsAtCompany)
 plot(ecdf(hr$YearsAtCompany))
 ```
