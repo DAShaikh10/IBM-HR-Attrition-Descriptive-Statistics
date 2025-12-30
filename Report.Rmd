@@ -1,19 +1,18 @@
 ---
-title: "Descriptive Statistical Analysis of the highest scoring IPL match"
+title: "IBM HR Employee Attrition Descriptive Analysis"
+subtitle: "Statistical Computing Group Project"
+author: "Amaan Shaikh | Danish Ali Shaikh | Rajat Pandey"
 output:
   pdf_document:
-    toc: true
-date: "`r Sys.Date()`"
+    number_sections: true
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
-# CLEAR ENVIRONMENT.
+# Clear Environment.
 rm(list = ls(all.names = TRUE))
 
-# LOAD PACKAGES
-
-# GLOBAL CHUNK OPTIONS
-# 'dev' checks if it's PDF to use high-quality rendering, otherwise standard
+# Global Chunk Options. [Ref: https://lms.bht-berlin.de/mod/folder/view.php?id=1419650]
+# 'dev' checks if it's PDF to use high-quality rendering, otherwise standard.
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
@@ -22,36 +21,197 @@ knitr::opts_chunk$set(
   fig.width = 6,
   fig.height = 4
 )
-
-# GGPLOT THEME
-theme_set(theme_minimal())  # check ?theme_bw for other themes available
 ```
 
-\newpage
+```{r helpers, echo=FALSE}
+# ----------------- Helper functions to follow 'DRY' policy.--------------------
+
+# This function allows for generating absolute, relative,
+# cumulative absolute, cumulative relative frequencies as  a table.
+# 
+# Arguments:
+#   x:  any R object for which frequencies are to be obtained.
+#   var_name: Variable name for which data is present in argument 'x'. 
+#   caption: Caption for the generated table. OPTIONAL.
+#   show_cumulative: Required to be turned on in order to see cumulative
+#                    frequencies. OPTIONAL. DEFAULT: FALSE
+print_freq_table <- function(x, var_name, caption = NULL, show_cumulative = FALSE) {
+  df <- as.data.frame(table(x))
+  
+  colnames(df) <- c(var_name, "Frequency")
+  
+  # Calculate Relative Frequency (Percentage or Proportion)
+  df$Proportion <- round(100 * df$Frequency / sum(df$Frequency), 2)
+  
+  # Optionally, calculate Cumulative Absolute and Cumulative Relative Frequencies. 
+  if (show_cumulative) {
+    df$`Cum. Freq.` <- cumsum(df$Frequency)
+    df$`Cum. %`    <- cumsum(df$Proportion)
+  }
+  
+  # Handle Caption (Auto-generate if NULL)
+  if (is.null(caption)) {
+    caption <- paste(var_name, "Frequency Table")
+  }
+  
+  knitr::kable(
+    df,
+    caption = caption,
+    align = 'c', # Center align all columns.
+    format = "markdown"
+  )
+}
+
+# This function finds the mode for a given categorical variable.
+#
+# Arguments:
+#   x: a vector, a data frame, an array - for which mode is to be obtained.
+print_mode <- function(x) {
+  uniqv <- unique(x)
+  uniqv[which.max(tabulate(match(x, uniqv)))]
+}
+```
 
 # Introduction
 
-This report presents a descriptive analysis of the highest-scoring IPL match between **Sunrisers
-Hyderabad** (SRH) and **Royal Challengers Bengaluru** (RCB) (15 April 2024), using ball-by-ball data. Each observation corresponds to a single delivery.
+The IBM HR Employee Attrition workforce data is organized as a data matrix of observations and qualitative and quantitative variables. This report performs a comprehensive descriptive statistical analysis to summarize the distribution of individual variables using frequencies, measures of location, and measures of dispersion. Bivariate techniques, including contingency tables and correlation coefficients, are applied to investigate the joint behavior and co-dependency between employee attributes and attrition. Furthermore, simple linear regression is utilized to model the linear relationship between tenure and monthly income by estimating the regression coefficients.
 
-# Data Loading and Preprocessing
-```{r data-loading-and-processing}
-ipl_data <- read.csv("data/IPL.csv") # Load the IPL data. We do not need external packages for reading `CSV`.
+## Data Loading & Feature Selection
+We analyze **eight** key variables classified into the following datatypes :
 
-# Aggregate "Current Run Rate" variable.
-ipl_data$current_run_rate <- round(ipl_data$team_runs / ipl_data$ball_no, 2)
+- **Categorical - Nominal**: `Attrition`, `OverTime`
+- **Categorical - Ordinal**: `JobLevel` (1-5), `JobSatisfaction` (1-4), `WorkLifeBalance` (1-4)
+- **Numeric - Discrete**: `Age`, `YearsAtCompany`
+- **Numeric - Continuous**: `MonthlyIncome`
 
-included_columns <- c("batter", "bowler", "batter_balls", "batter_runs", "batting_team",
-                      "current_run_rate", "over", "runs_total", "team_runs")
-
-# We will work with a single match i.e., SRH vs RCB, 15th April 2024.
-match <- subset(x = ipl_data, subset = match_id == 1426268, select = included_columns)
+```{r load-data, echo = FALSE}
+raw_data     <- read.csv("data/ibm-hr-attrition.csv", stringsAsFactors = FALSE)
+hr           <- raw_data[, c("Attrition", "OverTime", "JobLevel",
+                             "JobSatisfaction", "WorkLifeBalance", "Age",
+                             "YearsAtCompany", "MonthlyIncome")]
 ```
 
-## Data Summary
-```{r data-summary}
-head(match)
-cat("Dataset dimensions:", nrow(match), "rows x", ncol(match), "columns")
+```{r preprocessing, echo = FALSE}
+# Nominal Variables.
+hr$Attrition <- as.factor(hr$Attrition)
+hr$OverTime  <- as.factor(hr$OverTime)
+
+# Ordinal Variables.
+hr$JobLevel        <- factor(hr$JobLevel, 
+                             levels = 1:5, 
+                             labels = c("Entry Level", "Junior", "Mid Level", "Senior", "Executive"), 
+                             ordered = TRUE)
+hr$JobSatisfaction <- factor(hr$JobSatisfaction, 
+                             levels = 1:4, 
+                             labels = c("Low", "Medium", "High", "Very High"), 
+                             ordered = TRUE)
+hr$WorkLifeBalance <- factor(hr$WorkLifeBalance, 
+                             levels = 1:4, 
+                             labels = c("Bad", "Good", "Better", "Best"), 
+                             ordered = TRUE)
 ```
+
+## Data summary
+
+```{r data-summary, echo = FALSE, results = 'asis'}
+paste("Dataset Dimensions:", nrow(hr), "rows x", ncol(hr), "columns.")
+knitr::kable(t(head(hr)), caption = "First six observations (Transposed View)")
+```
+
 # Univariate Analysis
-## Batter - Absolute frequency of balls faced.
+
+## Target & Sentiment
+
+In this section, we explore the question:
+"How do employees feel and what is their status?"
+
+### Attrition Status (Binary Nominal)
+ 
+```{r attrition-univariate, echo = FALSE}
+print_freq_table(hr$Attrition, "Attrition Status")
+barplot(table(hr$Attrition))
+```
+
+### Job Satisfaction (Ordinal)
+
+```{r job-satisfaction-univariate, echo = FALSE}
+print_freq_table(hr$JobSatisfaction, "Job Satisfaction", show_cumulative = TRUE)
+print_mode(hr$JobSatisfaction)
+```
+### Work Life Balance (Ordinal)
+
+```{r work-life-balance-univariate, echo = FALSE}
+print_freq_table(hr$WorkLifeBalance, "Work Life Balance", show_cumulative = TRUE)
+print_mode(hr$WorkLifeBalance)
+```
+
+## Financial Structure
+
+What is the job structure and compensation?
+
+### Job Level (Ordinal)
+
+```{r job-level-univariate, echo = FALSE}
+print_freq_table(hr$JobLevel, "Job Level", show_cumulative = TRUE)
+print_mode(hr$JobLevel)
+```
+### Monthly Income (Continuous)
+
+```{r monthly-income-univariate, echo = FALSE}
+hist(hr$MonthlyIncome,
+     xlab = "Monthly Income in USD",
+     ylab = "Count of Employees")
+
+boxplot(hr$MonthlyIncome)
+
+var(hr$MonthlyIncome)
+sd(hr$MonthlyIncome)
+range(hr$MonthlyIncome)
+IQR(hr$MonthlyIncome)
+```
+
+### Over Time (Binary Nominal)
+
+```{r overtime-univariate, echo = FALSE}
+print_freq_table(hr$OverTime, "Over Time")
+```
+## Demographics
+
+Who are they (Time) and can we model their growth?
+
+### Age (Numeric)
+
+```{r age-univariate}
+mean(hr$Age)
+median(hr$Age)
+var(hr$Age)
+sd(hr$Age)
+IQR(hr$Age)
+range(hr$Age)
+boxplot(hr$Age)
+plot(ecdf(hr$Age))
+```
+### Years At Company (Numeric)
+
+```{r years-at-company-univariate}
+mean(hr$YearsAtCompany)
+median(hr$YearsAtCompany)
+var(hr$YearsAtCompany)
+sd(hr$YearsAtCompany)
+IQR(hr$YearsAtCompany)
+range(hr$YearsAtCompany)
+boxplot(hr$YearsAtCompany)
+plot(ecdf(hr$YearsAtCompany))
+```
+
+# Bivariate Analysis
+
+## Impact of Sentiment on Attrition
+
+## Financial Factors & Attrition
+
+## Demographics & Attrition
+
+# Linear Regression Analysis
+
+# Conclusion
