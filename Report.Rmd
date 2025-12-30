@@ -123,8 +123,7 @@ knitr::kable(t(head(hr)), caption = "First six observations (Transposed View)")
 
 ## Target & Sentiment
 
-In this section, we explore the question:
-"How do employees feel and what is their status?"
+This section performs a univariate analysis to characterize employee sentiment and professional status, examining the frequency distributions of key qualitative variables.
 
 ### Attrition Status (Binary Nominal)
  
