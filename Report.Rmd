@@ -123,7 +123,7 @@ knitr::kable(
 )
 ```
 
-### 3.1.3 Job Level (Ordinal)
+### Job Level (Ordinal)
 
 The frequency distributions reveal employee composition. The attrition rate indicates what proportion of employees left the company. Job level cumulative frequencies show the hierarchical distribution from entry-level to senior positions.
 
@@ -140,3 +140,145 @@ knitr::kable(joblevel_freq,
              align = c('c', 'c', 'c', 'c', 'c'),
              format = "markdown")
 ```
+
+### Job Satisfaction (Ordinal)
+
+Job satisfaction levels reveal employee contentment with their roles. The distribution shows how satisfaction is spread across the workforce, with higher levels indicating greater job fulfillment.
+
+```{r jobsatisfaction-freq}
+# Frequency table with percentages
+jobsat_freq <- as.data.frame(table(hr_sub$JobSatisfaction))
+colnames(jobsat_freq) <- c("Satisfaction Level", "Frequency")
+jobsat_freq$Percentage <- round(100 * jobsat_freq$Frequency / sum(jobsat_freq$Frequency), 2)
+jobsat_freq$`Cumulative %` <- cumsum(jobsat_freq$Percentage)
+
+knitr::kable(jobsat_freq,
+             caption = "Job Satisfaction Distribution (1=Low, 4=High)",
+             align = c('c', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+### Work-Life Balance (Ordinal)
+
+Work-life balance distribution indicates how well employees manage their professional and personal lives. This metric is crucial for understanding employee well-being and potential burnout risks.
+
+```{r worklife-balance}
+# Frequency table with percentages
+wlb_freq <- as.data.frame(table(hr_sub$WorkLifeBalance))
+colnames(wlb_freq) <- c("Balance Level", "Frequency")
+wlb_freq$Percentage <- round(100 * wlb_freq$Frequency / sum(wlb_freq$Frequency), 2)
+wlb_freq$`Cumulative %` <- cumsum(wlb_freq$Percentage)
+
+knitr::kable(wlb_freq,
+             caption = "Work-Life Balance Distribution (1=Bad, 4=Best)",
+             align = c('c', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+### Visualizing Categorical Distributions
+To better compare the distributions of these ordinal variables, we visualize them using bar charts.
+
+```{r}
+par(mfrow = c(1, 3)) # Arrange plots in 1 row, 3 columns
+
+# Job Level
+barplot(table(hr_sub$JobLevel), main="Job Level", 
+        col="lightblue", xlab="Level", ylab="Count")
+
+# Job Satisfaction
+barplot(table(hr_sub$JobSatisfaction), main="Job Satisfaction", 
+        col="lightgreen", xlab="Level", ylab="Count")
+
+# Work Life Balance
+barplot(table(hr_sub$WorkLifeBalance), main="Work Life Balance", 
+        col="salmon", xlab="Level", ylab="Count")
+
+par(mfrow = c(1, 1)) # Reset layout
+```
+
+## Numeric Variables
+
+For quantitative variables, we analyze the distribution shape using histograms and boxplots, and we calculate measures of central tendency and dispersion.
+
+### Age Distribution
+The age distribution helps us understand the demographic maturity of the workforce.
+
+```{r age-analysis, fig.height=4, fig.width=8}
+# Set up side-by-side plots
+par(mfrow = c(1, 2))
+
+# Histogram
+hist(hr_sub$Age, main="Histogram of Age", xlab="Age", 
+     col="wheat", border="white")
+
+# Boxplot
+boxplot(hr_sub$Age, main="Boxplot of Age", ylab="Age", 
+        col="wheat", horizontal=TRUE)
+
+# Reset layout
+par(mfrow = c(1, 1))
+
+# Horizontal Summary Statistics
+age_stats <- data.frame(
+  Mean = round(mean(hr_sub$Age), 2),
+  Median = median(hr_sub$Age),
+  SD = round(sd(hr_sub$Age), 2),
+  Min = min(hr_sub$Age),
+  Max = max(hr_sub$Age)
+)
+knitr::kable(age_stats, caption = "Descriptive Statistics: Age")
+```
+
+### Monthly Income Distribution
+Income is analyzed to detect skewness and potential outliers (high earners).
+
+```{r}
+par(mfrow = c(1, 2))
+
+# Histogram
+hist(hr_sub$MonthlyIncome, main="Histogram of Income", xlab="Monthly Income", 
+     col="lightgray", border="white")
+
+# Boxplot
+boxplot(hr_sub$MonthlyIncome, main="Boxplot of Income", ylab="Income", 
+        col="lightgray", horizontal=TRUE)
+
+par(mfrow = c(1, 1))
+
+# Horizontal Summary Statistics
+inc_stats <- data.frame(
+  Mean = round(mean(hr_sub$MonthlyIncome), 2),
+  Median = median(hr_sub$MonthlyIncome),
+  SD = round(sd(hr_sub$MonthlyIncome), 2),
+  IQR = IQR(hr_sub$MonthlyIncome)
+)
+knitr::kable(inc_stats, caption = "Descriptive Statistics: Monthly Income")
+```
+
+
+### Years at Company (Tenure)
+Tenure analysis reveals loyalty patterns and workforce stability.
+
+```{r}
+par(mfrow = c(1, 2))
+
+# Histogram
+hist(hr_sub$YearsAtCompany, main="Dist. of Tenure", xlab="Years", 
+     col="lavender", border="white")
+
+# Boxplot
+boxplot(hr_sub$YearsAtCompany, main="Boxplot of Tenure", ylab="Years", 
+        col="lavender", horizontal=TRUE)
+
+par(mfrow = c(1, 1))
+
+# Horizontal Summary Statistics
+tenure_stats <- data.frame(
+  Mean = round(mean(hr_sub$YearsAtCompany), 2),
+  Median = median(hr_sub$YearsAtCompany),
+  SD = round(sd(hr_sub$YearsAtCompany), 2),
+  Max = max(hr_sub$YearsAtCompany)
+)
+knitr::kable(tenure_stats, caption = "Descriptive Statistics: Years at Company")
+```
+
