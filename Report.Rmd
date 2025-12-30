@@ -23,8 +23,6 @@ knitr::opts_chunk$set(
   echo = FALSE,
   warning = FALSE,
   message = FALSE,
-  fig.width = 4,
-  fig.height = 3.5,
   fig.align = "center",
   out.width = "90%"
 )
@@ -180,11 +178,22 @@ print_mode(hr$JobLevel)
 ```{r monthly-income-univariate, echo = FALSE}
 par(mfrow = c(1, 2))
 
-hist(hr$MonthlyIncome, main="Histogram of Income", xlab="Monthly Income", 
-     col="lightgray", border="white")
+hist(
+  hr$MonthlyIncome,
+  main = "Histogram of Income",
+  xlab = "Monthly Income",
+  col = "steelblue",
+  border = "white"
+)
 
-boxplot(hr$MonthlyIncome, main="Boxplot of Income", ylab="Income", 
-        col="lightgray", horizontal=TRUE)
+boxplot(
+  hr$MonthlyIncome,
+  main = "Boxplot of Income",
+  ylab = "Income",
+  col = "tan",
+  border = "black",
+  horizontal = TRUE
+)
 
 inc_stats <- data.frame(
   Variance = round(var(hr$MonthlyIncome), 2),
@@ -193,7 +202,10 @@ inc_stats <- data.frame(
   IQR = IQR(hr$MonthlyIncome)
 )
 
-knitr::kable(inc_stats, caption = "Descriptive Statistics: Monthly Income")
+knitr::kable(
+  inc_stats,
+  caption = "Descriptive Statistics: Monthly Income"
+)
 ```
 
 ### Over Time (Binary Nominal)
@@ -218,8 +230,23 @@ knitr::kable(age_stats, caption = "Descriptive Statistics: Age")
 
 par(mfrow = c(1, 2))
 
-boxplot(hr$Age)
-plot(ecdf(hr$Age))
+boxplot(
+  hr$Age,
+  main = "Boxplot of Age",
+  ylab = "Age",
+  col = "lightblue",
+  border = "steelblue",
+  outlier.col = "darkblue"
+)
+
+plot(
+  ecdf(hr$Age),
+  main = "Empirical CDF of Age",
+  xlab = "Age",
+  ylab = "F(Age)",
+  col = "darkred",
+  lwd = 2
+)
 ```
 ### Years At Company (Numeric)
 
@@ -236,8 +263,23 @@ yac_stats <- data.frame(
 knitr::kable(yac_stats, caption = "Descriptive Statistics: Years at Company")
 
 par(mfrow = c(1, 2))
-boxplot(hr$YearsAtCompany)
-plot(ecdf(hr$YearsAtCompany))
+boxplot(
+  hr$YearsAtCompany,
+  main = "Boxplot of Years at Company",
+  ylab = "Years at Company",
+  col = "lightgreen",
+  border = "darkgreen",
+  outlier.col = "darkgreen"
+)
+
+plot(
+  ecdf(hr$YearsAtCompany),
+  main = "Empirical CDF of Years at Company",
+  xlab = "Years at Company",
+  ylab = "F(Years at Company)",
+  col = "purple",
+  lwd = 2
+)
 ```
 
 # Bivariate Analysis
