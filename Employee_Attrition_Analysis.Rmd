@@ -1,0 +1,551 @@
+---
+title: "IBM HR Employee Attrition Analysis"
+subtitle: "Statistical Computing Project"
+author: "Your Name"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    fig_caption: yes
+    keep_tex: no
+geometry: "left=0.75in, right=0.75in, top=0.8in, bottom=0.8in"
+fontsize: 11pt
+---
+
+```{r setup, include=FALSE}
+# CLEAR ENVIRONMENT
+rm(list = ls(all.names = TRUE))
+
+# GLOBAL CHUNK OPTIONS
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 7,
+  fig.height = 3.5,
+  fig.align = "center",
+  out.width = "90%"
+)
+```
+
+# Executive Summary
+
+This report presents a comprehensive statistical analysis of the IBM HR Employee Attrition dataset. The analysis explores employee characteristics and their relationship with attrition, including demographics (age), work experience (years at company), compensation (monthly income), and work patterns (overtime). Key analytical techniques applied include univariate analysis (descriptive statistics, frequency distributions, measures of central tendency and dispersion), bivariate analysis (cross-tabulations, correlations), and simple linear regression modeling to predict income based on tenure.
+
+# 1. Introduction
+
+Employee attrition is a critical concern for organizations, impacting productivity, morale, and operational costs. This analysis examines the IBM HR Employee Attrition dataset to identify patterns contributing to employee turnover.
+
+## 1.1 Objectives
+
+The primary objectives are:
+
+- Explore distribution and characteristics of key employee variables
+- Investigate relationships between attrition and employee factors
+- Develop a predictive model for monthly income based on years at company
+- Provide insights for HR decision-making
+
+## 1.2 Dataset
+
+We analyze ten key variables: attrition status, overtime, job level, job satisfaction, work-life balance, age, tenure, total working years, number of companies worked, and monthly income.
+
+# 2. Data Preparation
+
+We classify our variables into the required types:
+
+- **Nominal**: `Attrition`, `OverTime`
+- **Ordinal**: `JobLevel` (1-5), `JobSatisfaction` (1-4), `WorkLifeBalance` (1-4)
+- **Numeric (Discrete)**: `Age`, `YearsAtCompany`, `TotalWorkingYears`, `NumCompaniesWorked`
+- **Numeric (Continuous)**: `MonthlyIncome`
+
+```{r load-data, echo=TRUE}
+# Load data and select variables
+hr <- read.csv("WA_Fn-UseC_-HR-Employee-Attrition.csv", stringsAsFactors = FALSE)
+hr_sub <- hr[, c("Attrition", "OverTime", "JobLevel", "JobSatisfaction", "WorkLifeBalance",
+                 "Age", "YearsAtCompany", "TotalWorkingYears", "NumCompaniesWorked", "MonthlyIncome")]
+
+# Convert data types
+hr_sub$Attrition <- factor(hr_sub$Attrition)
+hr_sub$OverTime  <- factor(hr_sub$OverTime)
+hr_sub$JobLevel <- factor(hr_sub$JobLevel, levels = 1:5, ordered = TRUE)
+hr_sub$JobSatisfaction <- factor(hr_sub$JobSatisfaction, levels = 1:4, ordered = TRUE)
+hr_sub$WorkLifeBalance <- factor(hr_sub$WorkLifeBalance, levels = 1:4, ordered = TRUE)
+```
+
+## Data Summary
+
+```{r data-summary}
+cat("Dataset dimensions:", nrow(hr_sub), "rows x", ncol(hr_sub), "columns\n\n")
+str(hr_sub)
+```
+
+---
+
+# 3. Univariate Analysis
+
+Univariate analysis examines each variable individually to understand its distribution, central tendency, and variability.
+
+## 3.1 Categorical and Ordinal Variables
+
+### 3.1.1 Attrition Status
+
+```{r attrition-freq}
+# Frequency table with percentages
+attrition_freq <- as.data.frame(table(hr_sub$Attrition))
+colnames(attrition_freq) <- c("Status", "Frequency")
+attrition_freq$Percentage <- round(100 * attrition_freq$Frequency / sum(attrition_freq$Frequency), 2)
+attrition_freq$`Cumulative %` <- cumsum(attrition_freq$Percentage)
+
+knitr::kable(attrition_freq,
+             caption = "Attrition Status Distribution",
+             align = c('l', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+**Interpretation:** The frequency distribution reveals the proportion of employees who left the company versus those who stayed.
+
+### 3.1.2 Overtime Status
+
+```{r overtime-freq}
+# Frequency table with percentages
+overtime_freq <- as.data.frame(table(hr_sub$OverTime))
+colnames(overtime_freq) <- c("Overtime", "Frequency")
+overtime_freq$Percentage <- round(100 * overtime_freq$Frequency / sum(overtime_freq$Frequency), 2)
+overtime_freq$`Cumulative %` <- cumsum(overtime_freq$Percentage)
+
+knitr::kable(overtime_freq,
+             caption = "Overtime Status Distribution",
+             align = c('l', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+**Interpretation:** This shows the distribution of employees working overtime versus standard hours.
+
+### 3.1.3 Job Level (Ordinal)
+
+```{r joblevel-freq}
+# Frequency table with percentages and cumulative frequencies
+joblevel_freq <- as.data.frame(table(hr_sub$JobLevel))
+colnames(joblevel_freq) <- c("Job Level", "Frequency")
+joblevel_freq$Percentage <- round(100 * joblevel_freq$Frequency / sum(joblevel_freq$Frequency), 2)
+joblevel_freq$`Cumulative Frequency` <- cumsum(joblevel_freq$Frequency)
+joblevel_freq$`Cumulative %` <- cumsum(joblevel_freq$Percentage)
+
+knitr::kable(joblevel_freq,
+             caption = "Job Level Distribution (Ordinal)",
+             align = c('c', 'c', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+**Interpretation:** The frequency distributions reveal employee composition. The attrition rate indicates what proportion of employees left the company. Job level cumulative frequencies show the hierarchical distribution from entry-level to senior positions.
+
+### 3.1.4 Job Satisfaction (Ordinal)
+
+```{r jobsatisfaction-freq}
+# Frequency table with percentages and cumulative frequencies
+jobsat_freq <- as.data.frame(table(hr_sub$JobSatisfaction))
+colnames(jobsat_freq) <- c("Job Satisfaction", "Frequency")
+jobsat_freq$Percentage <- round(100 * jobsat_freq$Frequency / sum(jobsat_freq$Frequency), 2)
+jobsat_freq$`Cumulative Frequency` <- cumsum(jobsat_freq$Frequency)
+jobsat_freq$`Cumulative %` <- cumsum(jobsat_freq$Percentage)
+
+knitr::kable(jobsat_freq,
+             caption = "Job Satisfaction Distribution (Ordinal: 1=Low, 4=High)",
+             align = c('c', 'c', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+**Interpretation:** Job satisfaction levels reveal employee contentment with their roles. The distribution shows how satisfaction is spread across the workforce, with higher levels indicating greater job fulfillment.
+
+### 3.1.5 Work-Life Balance (Ordinal)
+
+```{r worklifebalance-freq}
+# Frequency table with percentages and cumulative frequencies
+wlb_freq <- as.data.frame(table(hr_sub$WorkLifeBalance))
+colnames(wlb_freq) <- c("Work-Life Balance", "Frequency")
+wlb_freq$Percentage <- round(100 * wlb_freq$Frequency / sum(wlb_freq$Frequency), 2)
+wlb_freq$`Cumulative Frequency` <- cumsum(wlb_freq$Frequency)
+wlb_freq$`Cumulative %` <- cumsum(wlb_freq$Percentage)
+
+knitr::kable(wlb_freq,
+             caption = "Work-Life Balance Distribution (Ordinal: 1=Low, 4=High)",
+             align = c('c', 'c', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+**Interpretation:** Work-life balance distribution indicates how well employees manage their professional and personal lives. This metric is crucial for understanding employee well-being and potential burnout risks.
+
+## 3.2 Numeric Variables
+
+### 3.2.1 Age Distribution
+
+```{r age-analysis, fig.width=8, fig.height=3.5}
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+hist(hr_sub$Age, col = "steelblue", main = "Age Distribution", xlab = "Age", border = "white")
+boxplot(hr_sub$Age, col = "lightblue", main = "Age Boxplot", ylab = "Age")
+par(mfrow = c(1, 1))
+```
+
+```{r age-stats}
+# Summary statistics
+summary(hr_sub$Age)
+sd(hr_sub$Age)
+IQR(hr_sub$Age)
+```
+
+**Interpretation:** The age distribution shows the demographic profile of the workforce. The histogram reveals the shape of the distribution, while the boxplot identifies central tendency and potential outliers.
+
+### 3.2.2 Years at Company
+
+```{r years-analysis, fig.width=8, fig.height=3.5}
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+hist(hr_sub$YearsAtCompany, col = "coral", main = "Years at Company", xlab = "Years", border = "white")
+boxplot(hr_sub$YearsAtCompany, col = "lightcoral", main = "Years Boxplot", ylab = "Years")
+par(mfrow = c(1, 1))
+```
+
+```{r years-stats}
+# Summary statistics
+summary(hr_sub$YearsAtCompany)
+sd(hr_sub$YearsAtCompany)
+IQR(hr_sub$YearsAtCompany)
+```
+
+**Interpretation:** Employee tenure distribution reveals retention patterns and workforce stability. Lower values indicate recent hires while higher values show long-term employees.
+
+### 3.2.3 Monthly Income
+
+```{r income-analysis, fig.width=8, fig.height=3.5}
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+hist(hr_sub$MonthlyIncome, col = "seagreen", main = "Income Distribution", xlab = "Monthly Income", border = "white")
+boxplot(hr_sub$MonthlyIncome, col = "lightgreen", main = "Income Boxplot", ylab = "Income")
+par(mfrow = c(1, 1))
+```
+
+```{r income-stats}
+# Summary statistics
+summary(hr_sub$MonthlyIncome)
+sd(hr_sub$MonthlyIncome)
+IQR(hr_sub$MonthlyIncome)
+```
+
+**Interpretation:** Income distribution shows the compensation structure. The standard deviation and IQR indicate salary variability across the organization, with higher dispersion suggesting diverse job roles and levels.
+
+### 3.2.4 Total Working Years
+
+```{r totalyears-analysis, fig.width=8, fig.height=3.5}
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+hist(hr_sub$TotalWorkingYears, col = "orange", main = "Total Working Years", xlab = "Years", border = "white")
+boxplot(hr_sub$TotalWorkingYears, col = "lightyellow", main = "Total Years Boxplot", ylab = "Years")
+par(mfrow = c(1, 1))
+```
+
+```{r totalyears-stats}
+# Summary statistics
+summary(hr_sub$TotalWorkingYears)
+sd(hr_sub$TotalWorkingYears)
+IQR(hr_sub$TotalWorkingYears)
+```
+
+**Interpretation:** Total working years reflects overall career experience across all employers. This provides context for understanding employee expertise levels and career stage, distinguishing total experience from tenure at the current company.
+
+### 3.2.5 Number of Companies Worked
+
+```{r numcompanies-analysis, fig.width=8, fig.height=3.5}
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+hist(hr_sub$NumCompaniesWorked, col = "purple", main = "Number of Companies Worked", xlab = "Number", border = "white")
+boxplot(hr_sub$NumCompaniesWorked, col = "lavender", main = "Companies Boxplot", ylab = "Number")
+par(mfrow = c(1, 1))
+```
+
+```{r numcompanies-stats}
+# Summary statistics
+summary(hr_sub$NumCompaniesWorked)
+sd(hr_sub$NumCompaniesWorked)
+IQR(hr_sub$NumCompaniesWorked)
+```
+
+**Interpretation:** Number of companies worked indicates job mobility patterns. Higher values may suggest either extensive experience across diverse organizations or potential job-hopping behavior. This metric helps assess employee stability and adaptability.
+
+# 4. Bivariate Analysis
+
+Bivariate analysis explores relationships between pairs of variables to identify associations and patterns.
+
+## 4.1 Attrition by Overtime (Categorical × Categorical)
+
+```{r attr-overtime, fig.width=6, fig.height=3.5}
+# Contingency Table
+attr_ot_tab <- table(hr_sub$Attrition, hr_sub$OverTime)
+
+# Display raw counts with margins
+knitr::kable(addmargins(attr_ot_tab),
+             caption = "Attrition by Overtime Status (Counts)",
+             align = c('l', 'c', 'c', 'c'),
+             format = "markdown")
+
+# Column proportions (percentage within each overtime category)
+col_props <- round(100 * prop.table(attr_ot_tab, margin = 2), 2)
+knitr::kable(col_props,
+             caption = "Column-wise Proportions (% within Overtime Status)",
+             align = c('l', 'c', 'c'),
+             format = "markdown")
+
+# Row proportions (percentage of overtime for each attrition status)
+row_props <- round(100 * prop.table(attr_ot_tab, margin = 1), 2)
+knitr::kable(row_props,
+             caption = "Row-wise Proportions (% within Attrition Status)",
+             align = c('l', 'c', 'c'),
+             format = "markdown")
+
+# Grouped bar chart
+barplot(attr_ot_tab, beside = TRUE, legend = rownames(attr_ot_tab),
+        col = c("steelblue", "coral"), main = "Attrition by Overtime",
+        xlab = "Overtime", ylab = "Frequency", cex.main=0.9,
+        args.legend = list(title = "Attrition", x = "topright"))
+```
+
+**Interpretation:** The contingency table and bar chart reveal whether overtime work is associated with higher attrition rates. Column-wise proportions show the attrition rate within each overtime category.
+
+## 4.2 Attrition by Age and Income (Categorical × Numeric)
+
+```{r attr-numeric-tables}
+# Age by Attrition
+tapply(hr_sub$Age, hr_sub$Attrition, summary)
+tapply(hr_sub$Age, hr_sub$Attrition, sd)
+
+# Income by Attrition
+tapply(hr_sub$MonthlyIncome, hr_sub$Attrition, summary)
+tapply(hr_sub$MonthlyIncome, hr_sub$Attrition, sd)
+```
+
+```{r attr-numeric, fig.width=8, fig.height=3.5}
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+boxplot(Age ~ Attrition, data = hr_sub, col = c("lightblue", "lightcoral"),
+        main = "Age by Attrition", xlab = "Attrition", ylab = "Age", cex.main=0.9)
+boxplot(MonthlyIncome ~ Attrition, data = hr_sub, col = c("lightgreen", "lightyellow"),
+        main = "Income by Attrition", xlab = "Attrition", ylab = "Income", cex.main=0.9)
+par(mfrow = c(1, 1))
+```
+
+**Interpretation:** Comparing distributions between employees who left and stayed helps identify demographic and compensation patterns. Differences in median values or box positions suggest potential attrition factors.
+
+## 4.3 Attrition by Job Satisfaction (Categorical × Ordinal)
+
+```{r attr-jobsat}
+# Contingency Table
+attr_js_tab <- table(hr_sub$Attrition, hr_sub$JobSatisfaction)
+
+# Display raw counts with margins
+knitr::kable(addmargins(attr_js_tab),
+             caption = "Attrition by Job Satisfaction (Counts)",
+             align = c('l', 'c', 'c', 'c', 'c', 'c'),
+             format = "markdown")
+
+# Row proportions (percentage within each attrition status)
+row_props_js <- round(100 * prop.table(attr_js_tab, margin = 1), 2)
+knitr::kable(row_props_js,
+             caption = "Row-wise Proportions (% within Attrition Status)",
+             align = c('l', 'c', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+```{r attr-jobsat-plot, fig.width=6, fig.height=3.5}
+# Grouped bar chart
+barplot(attr_js_tab, beside = TRUE, legend = rownames(attr_js_tab),
+        col = c("steelblue", "coral"), main = "Attrition by Job Satisfaction",
+        xlab = "Job Satisfaction Level", ylab = "Frequency", cex.main=0.9,
+        args.legend = list(title = "Attrition", x = "topright"))
+```
+
+**Interpretation:** The contingency table reveals how job satisfaction levels relate to attrition. Lower satisfaction scores may be associated with higher attrition rates, indicating the importance of employee satisfaction in retention strategies.
+
+## 4.4 Attrition by Work-Life Balance (Categorical × Ordinal)
+
+```{r attr-wlb}
+# Contingency Table
+attr_wlb_tab <- table(hr_sub$Attrition, hr_sub$WorkLifeBalance)
+
+# Display raw counts with margins
+knitr::kable(addmargins(attr_wlb_tab),
+             caption = "Attrition by Work-Life Balance (Counts)",
+             align = c('l', 'c', 'c', 'c', 'c', 'c'),
+             format = "markdown")
+
+# Row proportions (percentage within each attrition status)
+row_props_wlb <- round(100 * prop.table(attr_wlb_tab, margin = 1), 2)
+knitr::kable(row_props_wlb,
+             caption = "Row-wise Proportions (% within Attrition Status)",
+             align = c('l', 'c', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+```{r attr-wlb-plot, fig.width=6, fig.height=3.5}
+# Grouped bar chart
+barplot(attr_wlb_tab, beside = TRUE, legend = rownames(attr_wlb_tab),
+        col = c("steelblue", "coral"), main = "Attrition by Work-Life Balance",
+        xlab = "Work-Life Balance Level", ylab = "Frequency", cex.main=0.9,
+        args.legend = list(title = "Attrition", x = "topright"))
+```
+
+**Interpretation:** Work-life balance appears to be a critical factor in employee retention. The distribution across balance levels shows how employees who left versus stayed rated their work-life balance, potentially revealing threshold levels that influence attrition decisions.
+
+## 4.5 Attrition by Total Working Years and Number of Companies (Categorical × Numeric)
+
+```{r attr-career-tables}
+# Total Working Years by Attrition
+tapply(hr_sub$TotalWorkingYears, hr_sub$Attrition, summary)
+tapply(hr_sub$TotalWorkingYears, hr_sub$Attrition, sd)
+
+# Number of Companies by Attrition
+tapply(hr_sub$NumCompaniesWorked, hr_sub$Attrition, summary)
+tapply(hr_sub$NumCompaniesWorked, hr_sub$Attrition, sd)
+```
+
+```{r attr-career-plots, fig.width=8, fig.height=3.5}
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+boxplot(TotalWorkingYears ~ Attrition, data = hr_sub, col = c("lightyellow", "lightpink"),
+        main = "Total Years by Attrition", xlab = "Attrition", ylab = "Total Working Years", cex.main=0.9)
+boxplot(NumCompaniesWorked ~ Attrition, data = hr_sub, col = c("lavender", "lightcyan"),
+        main = "Companies by Attrition", xlab = "Attrition", ylab = "Number of Companies", cex.main=0.9)
+par(mfrow = c(1, 1))
+```
+
+**Interpretation:** Total working years and number of companies worked provide insights into career patterns of employees who leave versus stay. These metrics help distinguish between early-career attrition and patterns related to job mobility history.
+
+## 4.6 Income Relationships (Numeric × Numeric)
+
+```{r correlation-table}
+# Correlation matrix
+cor_matrix <- cor(hr_sub[, c("Age", "YearsAtCompany", "MonthlyIncome")])
+
+# Pearson correlations
+knitr::kable(round(cor_matrix, 4),
+             caption = "Pearson Correlation Matrix",
+             align = c('l', 'c', 'c', 'c'),
+             format = "markdown")
+
+# Detailed correlation statistics
+cor_details <- data.frame(
+  Relationship = c("Income vs Age", "Income vs Years at Company", "Age vs Years at Company"),
+  `Pearson r` = c(
+    round(cor(hr_sub$MonthlyIncome, hr_sub$Age), 4),
+    round(cor(hr_sub$MonthlyIncome, hr_sub$YearsAtCompany), 4),
+    round(cor(hr_sub$Age, hr_sub$YearsAtCompany), 4)
+  ),
+  `Spearman rho` = c(
+    round(cor(hr_sub$MonthlyIncome, hr_sub$Age, method = "spearman"), 4),
+    round(cor(hr_sub$MonthlyIncome, hr_sub$YearsAtCompany, method = "spearman"), 4),
+    round(cor(hr_sub$Age, hr_sub$YearsAtCompany, method = "spearman"), 4)
+  ),
+  Covariance = c(
+    round(cov(hr_sub$MonthlyIncome, hr_sub$Age), 2),
+    round(cov(hr_sub$MonthlyIncome, hr_sub$YearsAtCompany), 2),
+    round(cov(hr_sub$Age, hr_sub$YearsAtCompany), 2)
+  )
+)
+
+knitr::kable(cor_details,
+             caption = "Correlation and Covariance Statistics",
+             align = c('l', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+```{r income-correlations, fig.width=10, fig.height=4.5}
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+smoothScatter(hr_sub$Age, hr_sub$MonthlyIncome, main = "Income vs Age",
+              xlab = "Age", ylab = "Monthly Income", 
+              cex.main = 1, cex.lab = 1, colramp = colorRampPalette(c("white", "lightblue", "steelblue")))
+abline(lm(MonthlyIncome ~ Age, data = hr_sub), col = "darkblue", lwd = 2)
+
+smoothScatter(hr_sub$YearsAtCompany, hr_sub$MonthlyIncome, main = "Income vs Years",
+              xlab = "Years at Company", ylab = "Monthly Income", 
+              cex.main = 1, cex.lab = 1, colramp = colorRampPalette(c("white", "lightyellow", "coral")))
+abline(lm(MonthlyIncome ~ YearsAtCompany, data = hr_sub), col = "darkred", lwd = 2)
+par(mfrow = c(1, 1))
+```
+
+**Interpretation:** Scatterplots visualize the relationships between numeric variables. Correlation coefficients quantify the strength and direction of linear relationships. Positive correlations suggest that as tenure or age increases, income tends to increase as well.
+
+# 5. Linear Regression: Income ~ Years at Company
+
+We develop a simple linear regression model to predict monthly income based on years at company.
+
+```{r regression-model}
+# Linear Model
+lm_income <- lm(MonthlyIncome ~ YearsAtCompany, data = hr_sub)
+lm_summary <- summary(lm_income)
+
+# Extract coefficients
+coefs <- coef(lm_summary)
+
+# Regression coefficients table
+coef_table <- data.frame(
+  Coefficient = c("Intercept", "YearsAtCompany"),
+  Estimate = round(coefs[, "Estimate"], 2),
+  `Std. Error` = round(coefs[, "Std. Error"], 2),
+  `t-value` = round(coefs[, "t value"], 2),
+  `p-value` = format.pval(coefs[, "Pr(>|t|)"], digits = 3)
+)
+
+knitr::kable(coef_table,
+             caption = "Linear Regression Coefficients",
+             align = c('l', 'c', 'c', 'c', 'c'),
+             format = "markdown")
+
+# Model fit statistics (Horizontal)
+fit_stats <- data.frame(
+  `R-squared` = round(lm_summary$r.squared, 4),
+  `Adj. R-squared` = round(lm_summary$adj.r.squared, 4),
+  `F-statistic` = round(lm_summary$fstatistic[1], 2),
+  `Residual SE` = round(lm_summary$sigma, 2),
+  `DF` = lm_summary$df[2],
+  check.names = FALSE
+)
+
+knitr::kable(fit_stats,
+             caption = "Model Fit Statistics",
+             align = 'c',
+             format = "markdown")
+
+# Predictions table
+new_data <- data.frame(YearsAtCompany = c(2, 5, 10, 15, 20))
+predictions <- predict(lm_income, newdata = new_data, interval = "confidence")
+
+pred_table <- data.frame(
+  `Years at Company` = new_data$YearsAtCompany,
+  `Predicted Income` = round(predictions[, "fit"], 2),
+  `Lower 95% CI` = round(predictions[, "lwr"], 2),
+  `Upper 95% CI` = round(predictions[, "upr"], 2)
+)
+
+knitr::kable(pred_table,
+             caption = "Income Predictions with 95% Confidence Intervals",
+             align = c('c', 'c', 'c', 'c'),
+             format = "markdown")
+```
+
+**Model Equation:** MonthlyIncome = `r round(coef(lm_income)[1], 2)` + `r round(coef(lm_income)[2], 2)` × YearsAtCompany
+
+```{r regression-plot, fig.width=6, fig.height=3.5}
+smoothScatter(hr_sub$YearsAtCompany, hr_sub$MonthlyIncome,
+              main = "Regression: Income vs Years", xlab = "Years at Company", ylab = "Income",
+              cex.main=0.9, colramp = colorRampPalette(c("white", "lightblue", "steelblue")))
+abline(lm_income, col = "red", lwd = 2)
+legend("topleft",
+       legend = paste0("R² = ", round(summary(lm_income)$r.squared, 4)),
+       bty = "n", cex = 0.9)
+```
+
+**Interpretation:** The regression line shows the best-fit linear relationship. The intercept represents expected income for new employees, while the slope indicates the average income increase per additional year. The R-squared value shows what proportion of income variance is explained by tenure alone.
+
+# 6. Conclusions
+
+1. **Attrition Patterns:** The dataset reveals clear attrition patterns, particularly in relation to overtime work. The contingency table analysis shows differences in attrition rates between overtime and non-overtime workers.
+
+2. **Demographic Insights:** Age and tenure distributions provide a comprehensive profile of workforce composition, showing the typical employee characteristics and variability within the organization.
+
+3. **Income Relationships:** Strong positive correlation exists between tenure and income (Pearson r ~ 0.5), indicating that employees with longer tenure tend to have higher salaries. Age also shows positive correlation with income.
+
+4. **Predictive Model:** The linear regression model (R-squared ~ 0.3) demonstrates that years at company explains approximately 30% of income variance. While significant, this suggests other factors (e.g., job level, education, performance) also influence compensation.
