@@ -379,6 +379,27 @@ This section investigates the relationships between pairs of variables to identi
 
 We analyze the relationship between **Job Satisfaction** and **Attrition** to determine if lower employee morale correlates with higher turnover.
 
+```{r job-sat-vs-attrition}
+# Job Sat vs Attrition
+
+# Contingency Table with Margins
+tab_js_attr <- table(hr$Attrition, hr$JobSatisfaction)
+tab_js_attr_margins <- addmargins(tab_js_attr)
+knitr::kable(tab_js_attr_margins, caption = "Attrition by Job Satisfaction Level (with Marginal Frequencies)")
+
+# Conditional Relative Frequency Tables: Attrition vs JobSatisfaction
+
+# Row percentages (distribution of satisfaction levels within each attrition group)
+tab_js_rowprop <- prop.table(tab_js_attr, margin=1)
+knitr::kable(round(tab_js_rowprop, 2), caption = "Row Relative Frequency: Job Satisfaction within Attrition Groups")
+
+# Grouped Barplot
+barplot(tab_js_attr, beside=TRUE, 
+  main="Attrition by Job Satisfaction", 
+  legend=rownames(tab_js_attr), 
+  xlab="Satisfaction Level", col=c("lightblue", "salmon"))
+```
+
 ```{r cat-vs-cat-bivariate}
 income_by_attrition <- data.frame(
   Mean = tapply(hr$MonthlyIncome, hr$Attrition, mean),
