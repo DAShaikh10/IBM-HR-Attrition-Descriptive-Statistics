@@ -424,10 +424,73 @@ income_by_attrition <- data.frame(
   SD = tapply(hr$MonthlyIncome, hr$Attrition, sd)
 )
 knitr::kable(round(income_by_attrition, 2), caption = "Monthly Income Summary by Attrition (Mean, Median, SD)")
+
+
+# Encode Attrition as numeric (Yes = 1, No = 0)
+attrition_numeric <- as.numeric(hr$Attrition) - 1
+
+# Pearson and Spearman correlation
+cor_table <- data.frame(
+  Statistic = c("Pearson correlation", "Spearman correlation"),
+  Value = round(c(
+    cor(hr$MonthlyIncome, attrition_numeric, method = "pearson"),
+    cor(hr$MonthlyIncome, attrition_numeric, method = "spearman")
+  ), 3)
+)
+knitr::kable(cor_table, caption = "Correlation Coefficients: Monthly Income vs Attrition", align = c('l', 'c'))
 ```
 
 ## Demographics & Attrition
 
 # Linear Regression Analysis
+
+## Linear Regression: Monthly Income vs Years at Company
+
+```{r monthly-income-vs-years-regression, fig.height=4, fig.width=6}
+# Fit linear model
+lm_fit <- lm(MonthlyIncome ~ YearsAtCompany, data = hr)
+
+
+# Simple base R scatter plot with regression line
+plot(hr$YearsAtCompany, hr$MonthlyIncome,
+  xlab = "Years at Company",
+  ylab = "Monthly Income (USD)",
+  main = "Monthly Income vs Years at Company",
+  col = "#377eb8", pch = 19)
+abline(lm_fit, col = "#e41a1c", lwd = 2)
+
+# Add legend at bottom right inside the plot, smaller size
+legend("bottomright", legend = c("Data", "Regression Line"),
+  col = c("#377eb8", "#e41a1c"),
+  pch = c(19, NA), lty = c(NA, 1), lwd = c(NA, 2),
+  bty = "n", pt.cex = 0.8, cex = 0.85, x.intersp = 1.1, y.intersp = 1)
+
+# Regression summary as a table (no duplicate row index)
+reg_summary <- summary(lm_fit)
+reg_table <- data.frame(
+  Term = c("Intercept", "Years at Company"),
+  Estimate = round(reg_summary$coefficients[,1], 2),
+  `Std. Error` = round(reg_summary$coefficients[,2], 2),
+  `t value` = round(reg_summary$coefficients[,3], 2),
+  `Pr(>|t|)` = format.pval(reg_summary$coefficients[,4], digits = 2, eps = .001)
+)
+
+knitr::kable(reg_table, caption = "Regression Coefficients: Monthly Income ~ Years at Company", align = 'c', row.names = FALSE)
+
+# Model metrics as a horizontal table
+metrics_vec <- c(
+  round(reg_summary$r.squared, 3),
+  round(reg_summary$adj.r.squared, 3),
+  round(reg_summary$fstatistic[1], 2),
+  format.pval(pf(reg_summary$fstatistic[1], reg_summary$fstatistic[2], reg_summary$fstatistic[3], lower.tail = FALSE), digits = 2, eps = .001)
+)
+metrics_table_horiz <- data.frame(
+  R_squared = metrics_vec[1],
+  Adjusted_R_squared = metrics_vec[2],
+  F_statistic = metrics_vec[3],
+  p_value = metrics_vec[4]
+)
+knitr::kable(metrics_table_horiz, caption = "Model Fit Statistics (Horizontal)", align = 'c', row.names = FALSE)
+```
 
 # Conclusion
