@@ -415,6 +415,8 @@ barplot(tab_js_attr, beside=TRUE,
 par(mar = c(5, 4, 4, 2) + 0.1)
 ```
 
+**Interpretation:** The analysis identifies low job satisfaction as a driver of attrition. Among employees who left the organization, 28% reported 'Low' satisfaction, compared to only 18% among those who stayed. The bar chart visually confirms this trend: as satisfaction levels rise, the volume of retained employees (Blue) increases substantially, indicating that higher morale is strongly linked to workforce stability.
+
 ## Financial Factors & Attrition
 
 ```{r monthly-income-attrition-bivariate}
