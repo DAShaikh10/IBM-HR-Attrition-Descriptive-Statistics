@@ -549,9 +549,12 @@ boxplot(
 par(mfrow = c(1, 1))
 par(mar = c(5, 4, 4, 2) + 0.1)
 ```
-**Interpretation:** he analysis confirms that attrition is primarily an early-career phenomenon. Employees who leave are generally younger (median age 32 vs. 36) and have significantly shorter tenure (median 3 years vs. 6 years) compared to those who stay. This indicates that the organization struggles most with retaining new and junior talent, rather than long-term employees.
+
+**Interpretation:** The analysis confirms that attrition is primarily an early-career phenomenon. Employees who leave are generally younger (median age 32 vs. 36) and have significantly shorter tenure (median 3 years vs. 6 years) compared to those who stay. This indicates that the organization struggles most with retaining new and junior talent, rather than long-term employees.
 
 # Linear Regression Analysis
+
+Following the bivariate analysis, which identified a moderate positive correlation ($r = 0.51$) between tenure and compensation, this section utilizes Simple Linear Regression to quantify this relationship. The goal is to model Monthly Income (Dependent Variable) as a function of Years at Company (Independent Variable). By estimating the regression coefficients, we aim to determine the financial premium associated with employee longevity and assess how well tenure predicts overall earnings.
 
 ## Linear Regression: Monthly Income vs Years at Company
 
