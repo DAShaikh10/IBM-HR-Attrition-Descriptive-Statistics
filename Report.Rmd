@@ -402,7 +402,9 @@ barplot(tab_js_attr, beside=TRUE,
   xlab="Satisfaction Level", col=c("lightblue", "salmon"))
 ```
 
-```{r cat-vs-cat-bivariate}
+## Financial Factors & Attrition
+
+```{r monthly-income-attrition-bivariate}
 income_by_attrition <- data.frame(
   Mean = tapply(hr$MonthlyIncome, hr$Attrition, mean),
   Median = tapply(hr$MonthlyIncome, hr$Attrition, median),
@@ -410,8 +412,6 @@ income_by_attrition <- data.frame(
 )
 knitr::kable(round(income_by_attrition, 2), caption = "Monthly Income Summary by Attrition (Mean, Median, SD)")
 ```
-
-## Financial Factors & Attrition
 
 ## Demographics & Attrition
 
