@@ -19,7 +19,7 @@ output:
 ---
 
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
-  
+
 # Clear Environment.
 rm(list = ls(all.names = TRUE))
 
@@ -563,7 +563,7 @@ lm_fit <- lm(MonthlyIncome ~ YearsAtCompany, data = hr)
 par(mar = c(4, 4, 2, 1))
 
 # Simple base R scatter plot with regression line
-plot(
+smoothScatter(
   hr$YearsAtCompany,
   hr$MonthlyIncome,
   xlab = "Years at Company",
@@ -589,51 +589,23 @@ legend(
   y.intersp = 1
 )
 
+# Extract values for the formula
+b0 <- round(coef(lm_fit)[1], 2) # Intercept
+b1 <- round(coef(lm_fit)[2], 2) # Slope
+rse <- round(summary(lm_fit)$sigma, 2)   # Residual Standard Error
+
 par(mar = c(5, 4, 4, 2) + 0.1)
 
 # Regression summary as a table (no duplicate row index)
-reg_summary <- summary(lm_fit)
-reg_table <- data.frame(
-  Term = c("Intercept", "Years at Company"),
-  Estimate = round(reg_summary$coefficients[, 1], 2),
-  `Std. Error` = round(reg_summary$coefficients[, 2], 2),
-  `t value` = round(reg_summary$coefficients[, 3], 2),
-  `Pr(>|t|)` = format.pval(reg_summary$coefficients[, 4], digits = 2, eps = .001)
-)
-
-knitr::kable(reg_table,
-             caption = "Regression Coefficients: Monthly Income ~ Years at Company",
-             align = 'c',
-             row.names = FALSE)
-
-# Model metrics as a horizontal table
-metrics_vec <- c(
-  round(reg_summary$r.squared, 3),
-  round(reg_summary$adj.r.squared, 3),
-  round(reg_summary$fstatistic[1], 2),
-  format.pval(
-    pf(
-      reg_summary$fstatistic[1],
-      reg_summary$fstatistic[2],
-      reg_summary$fstatistic[3],
-      lower.tail = FALSE
-    ),
-    digits = 2,
-    eps = .001
-  )
-)
-metrics_table_horiz <- data.frame(
-  R_squared = metrics_vec[1],
-  Adjusted_R_squared = metrics_vec[2],
-  F_statistic = metrics_vec[3],
-  p_value = metrics_vec[4]
-)
-knitr::kable(
-  metrics_table_horiz,
-  caption = "Model Fit Statistics (Horizontal)",
-  align = 'c',
-  row.names = FALSE
-)
+summary(lm_fit)
 ```
+
+**Regression Equation:**
+$$\widehat{\text{MonthlyIncome}} = `r b0` + `r b1`(\text{YearsAtCompany})$$
+
+**Model Fit:**
+$$\text{Residual Standard Error} = `r rse`$$
+
+**Interpretation:** The regression analysis confirms a statistically significant positive relationship between tenure and compensation ($p < 0.001$). The model estimates that for every additional year an employee stays at the company, their monthly income increases by approximately **$395**, starting from a baseline of **$3,733**. However, the residual standard error of **4,039** suggests considerable variability in income that tenure alone does not explain.
 
 # Conclusion
