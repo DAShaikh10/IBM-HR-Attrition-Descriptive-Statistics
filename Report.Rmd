@@ -284,6 +284,8 @@ avg_inc <- mean(hr$MonthlyIncome)
 med_inc <- median(hr$MonthlyIncome)
 quants  <- quantile(hr$MonthlyIncome, probs = c(0.25, 0.5, 0.75))
 
+par(mar = c(4, 4, 2, 1))
+
 # 2. Draw Histogram
 hist(
   hr$MonthlyIncome,
@@ -309,6 +311,8 @@ legend("topright",
        lty = c(2, 1), # Match line types (2=Dashed, 1=Solid)
        bty = "n",
        cex = 0.9)
+
+par(mar = c(5, 4, 4, 2) + 0.1)
 
 # 5. Create Expanded Statistics Table
 inc_stats <- data.frame(
@@ -362,7 +366,7 @@ analyze_numeric(data_vec   = hr$Age,
 
 ### Years At Company (Numeric)
 
-```{r years-at-company-univariate, results = 'asis', fig.cap="Distribution of years at company showing low median tenure and a long right tail with high-tenure outliers", fig.height = 4, fig.pos = "H"}
+```{r years-at-company-univariate, results = 'asis', fig.cap = "Distribution of years at company showing low median tenure and a long right tail with high-tenure outliers", fig.height = 4, fig.pos = 'H'}
 
 analyze_numeric(data_vec   = hr$YearsAtCompany,
                 var_name   = "Years at Company",
@@ -381,25 +385,34 @@ This section investigates the relationships between pairs of variables to identi
 
 We analyze the relationship between **Job Satisfaction** and **Attrition** to determine if lower employee morale correlates with higher turnover.
 
-```{r job-sat-vs-attrition}
-# Job Sat vs Attrition
+```{r job-sat-vs-attrition, fig.height = 3, fig.width = 5, fig.pos = "H", fig.cap = "Attrition counts across Job Satisfaction levels. Employees reporting 'Low' satisfaction show a higher relative frequency of attrition compared to those in the 'High' and 'Very High' categories"}
 
 # Contingency Table with Margins
 tab_js_attr <- table(hr$Attrition, hr$JobSatisfaction)
 tab_js_attr_margins <- addmargins(tab_js_attr)
 knitr::kable(tab_js_attr_margins, caption = "Attrition by Job Satisfaction Level (with Marginal Frequencies)", align = c('l', 'c', 'c', 'c', 'c', 'c'))
 
-# Conditional Relative Frequency Tables: Attrition vs JobSatisfaction
+# Conditional Relative Frequency Tables: Attrition vs Job Satisfaction
 
 # Row percentages (distribution of satisfaction levels within each attrition group)
 tab_js_rowprop <- prop.table(tab_js_attr, margin=1)
 knitr::kable(round(tab_js_rowprop, 2), caption = "Row Relative Frequency: Job Satisfaction within Attrition Groups", align = c('l', 'c', 'c', 'c', 'c'))
 
+par(mar = c(3, 3, 2, 1))
+
 # Grouped Barplot
 barplot(tab_js_attr, beside=TRUE, 
   main="Attrition by Job Satisfaction", 
   legend=rownames(tab_js_attr), 
+  args.legend = list(
+          x = "topright",   # Position
+          bty = "n",        # No box border
+          cex = 0.8,        # Smaller text
+          inset = c(-0.03, -0.05) # Slight adjust
+        ),
   xlab="Satisfaction Level", col=c("lightblue", "salmon"))
+
+par(mar = c(5, 4, 4, 2) + 0.1)
 ```
 
 ## Financial Factors & Attrition
