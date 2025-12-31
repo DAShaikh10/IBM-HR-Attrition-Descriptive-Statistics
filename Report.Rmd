@@ -387,13 +387,13 @@ We analyze the relationship between **Job Satisfaction** and **Attrition** to de
 # Contingency Table with Margins
 tab_js_attr <- table(hr$Attrition, hr$JobSatisfaction)
 tab_js_attr_margins <- addmargins(tab_js_attr)
-knitr::kable(tab_js_attr_margins, caption = "Attrition by Job Satisfaction Level (with Marginal Frequencies)")
+knitr::kable(tab_js_attr_margins, caption = "Attrition by Job Satisfaction Level (with Marginal Frequencies)", align = c('l', 'c', 'c', 'c', 'c', 'c'))
 
 # Conditional Relative Frequency Tables: Attrition vs JobSatisfaction
 
 # Row percentages (distribution of satisfaction levels within each attrition group)
 tab_js_rowprop <- prop.table(tab_js_attr, margin=1)
-knitr::kable(round(tab_js_rowprop, 2), caption = "Row Relative Frequency: Job Satisfaction within Attrition Groups")
+knitr::kable(round(tab_js_rowprop, 2), caption = "Row Relative Frequency: Job Satisfaction within Attrition Groups", align = c('l', 'c', 'c', 'c', 'c'))
 
 # Grouped Barplot
 barplot(tab_js_attr, beside=TRUE, 
