@@ -11,6 +11,8 @@ header-includes:
   - \titlespacing*{\subsubsection}{0pt}{0.8ex}{0.4ex}
   - \renewcommand{\arraystretch}{0.8}
   - \usepackage{float}
+  - \usepackage{caption}
+  - \captionsetup{font=small}
 output:
   pdf_document:
     number_sections: true
@@ -347,7 +349,7 @@ This section analyzes Age and Years at Company using descriptive statistics and 
 
 ### Age (Continuous)
 
-```{r age-univariate, results = 'asis', fig.cap = "Distribution of employee age. The boxplot (left) summarizes dispersion and outliers, and the empirical cumulative distribution function (right) shows the cumulative age distribution", fig.pos = "H"}
+```{r age-univariate, results = 'asis', fig.cap = "Distribution of employee age. The boxplot (left) summarizes dispersion and outliers, and the empirical cumulative distribution function (right) shows the cumulative age distribution", fig.height = 4, fig.pos = "H"}
 
 analyze_numeric(data_vec   = hr$Age,
                 var_name   = "Age",
@@ -360,7 +362,7 @@ analyze_numeric(data_vec   = hr$Age,
 
 ### Years At Company (Numeric)
 
-```{r years-at-company-univariate, results = 'asis', fig.cap="Distribution of years at company showing low median tenure and a long right tail with high-tenure outliers", fig.pos = "H"}
+```{r years-at-company-univariate, results = 'asis', fig.cap="Distribution of years at company showing low median tenure and a long right tail with high-tenure outliers", fig.height = 4, fig.pos = "H"}
 
 analyze_numeric(data_vec   = hr$YearsAtCompany,
                 var_name   = "Years at Company",
