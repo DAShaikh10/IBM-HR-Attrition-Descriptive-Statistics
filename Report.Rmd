@@ -444,6 +444,26 @@ knitr::kable(cor_table, caption = "Correlation Coefficients: Monthly Income vs A
 
 ## Demographics & Attrition
 
+```{r demographics-attrition}
+# Set up side-by-side plotting area
+par(mfrow = c(1, 2))
+
+# 1. Age vs Attrition
+boxplot(Age ~ Attrition, data = hr,
+        main = "Age by Attrition",
+        xlab = "Attrition", ylab = "Age",
+        col = c("lightblue", "salmon"))
+
+# 2. Years at Company vs Attrition
+boxplot(YearsAtCompany ~ Attrition, data = hr,
+        main = "Tenure by Attrition",
+        xlab = "Attrition", ylab = "Years at Company",
+        col = c("lightgreen", "salmon"))
+
+# Reset layout
+par(mfrow = c(1, 1))
+```
+
 # Linear Regression Analysis
 
 ## Linear Regression: Monthly Income vs Years at Company
