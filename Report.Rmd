@@ -373,7 +373,20 @@ analyze_numeric(data_vec   = hr$YearsAtCompany,
 
 # Bivariate Analysis
 
-## Impact of Sentiment on Attrition
+This section investigates the relationships between pairs of variables to identify potential drivers of attrition. We employ contingency tables for categorical data and correlation matrices for numerical attributes.
+
+## Impact of Sentiment on Attrition (Categorical vs. Categorical)
+
+We analyze the relationship between **Job Satisfaction** and **Attrition** to determine if lower employee morale correlates with higher turnover.
+
+```{r cat-vs-cat-bivariate}
+income_by_attrition <- data.frame(
+  Mean = tapply(hr$MonthlyIncome, hr$Attrition, mean),
+  Median = tapply(hr$MonthlyIncome, hr$Attrition, median),
+  SD = tapply(hr$MonthlyIncome, hr$Attrition, sd)
+)
+knitr::kable(round(income_by_attrition, 2), caption = "Monthly Income Summary by Attrition (Mean, Median, SD)")
+```
 
 ## Financial Factors & Attrition
 
