@@ -442,9 +442,10 @@ cor_table <- data.frame(
 knitr::kable(cor_table, caption = "Correlation Coefficients: Monthly Income vs Attrition", align = c('l', 'c'))
 ```
 
+\newpage
 ## Demographics & Attrition
-
-```{r demographics-attrition}
+We examine the demographic profile of the workforce, specifically focusing on Age and Years at Company (Tenure). We compare the distributions of these variables across attrition groups to determine if younger or newer employees are at higher risk of leaving
+```{r demographics-attrition, fig.cap="Demographic Drivers of Attrition: (Left) Age distribution showing a lower median age for leavers; (Right) Tenure distribution showing early-stage attrition among new hires."}
 # Set up side-by-side plotting area
 par(mfrow = c(1, 2))
 
@@ -463,6 +464,7 @@ boxplot(YearsAtCompany ~ Attrition, data = hr,
 # Reset layout
 par(mfrow = c(1, 1))
 ```
+**Interpretation:** he analysis confirms that attrition is primarily an early-career phenomenon. Employees who leave are generally younger (median age 32 vs. 36) and have significantly shorter tenure (median 3 years vs. 6 years) compared to those who stay. This indicates that the organization struggles most with retaining new and junior talent, rather than long-term employees.
 
 # Linear Regression Analysis
 
