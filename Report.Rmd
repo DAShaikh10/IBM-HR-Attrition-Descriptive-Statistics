@@ -539,7 +539,7 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 
 # Linear Regression Analysis
 
-## Correlation Analysis: Years at Company vs Monthly Income (Numeric vs Numeric)
+## Correlation Analysis: Years at Company vs. Monthly Income (Numeric vs Numeric)
 
 Before proceeding with regression modeling, we examine the strength and nature of the relationship between **tenure** _(Years at Company)_ and **compensation** _(Monthly Income)_ using both **Pearson** and **Spearman** correlation coefficients. Pearson correlation measures the linear association between two continuous variables, while Spearman correlation assesses monotonic relationships based on ranked data and is more robust to outliers.
 
@@ -566,62 +566,95 @@ knitr::kable(
 
 ## Linear Regression: Monthly Income vs Years at Company
 
-```{r monthly-income-vs-years-regression, fig.height=4, fig.width=6}
+We model **Monthly Income** ($Y$) as a linear function of **Years at Company** ($X$) to quantify the financial premium of tenure.
 
-# Fit linear model
+```{r monthly-income-vs-years-regression, fig.cap = "Scatterplot with density shading illustrating the relationship between Years at Company and Monthly Income. The red regression line indicates a positive linear trend, while the blue density shading reveals the concentration of data points, particularly in the lower tenure and income ranges.", fig.height = 4, fig.width = 6}
+
+# Fit linear model.
 lm_fit <- lm(MonthlyIncome ~ YearsAtCompany, data = hr)
+lm_sum <- summary(lm_fit)
 
-par(mar = c(4, 4, 2, 1))
+par(mar = c(4, 4, 2, 1)) # Reduce margins.
 
-# Simple base R scatter plot with regression line
+# Simple base R scatter plot with regression line.
 smoothScatter(
   hr$YearsAtCompany,
   hr$MonthlyIncome,
   xlab = "Years at Company",
   ylab = "Monthly Income (USD)",
   main = "Monthly Income vs Years at Company",
-  col = "#377eb8",
+  colramp = colorRampPalette(c("white", "#377eb8")),
   pch = 19
 )
+
+# Add regression line.
 abline(lm_fit, col = "#e41a1c", lwd = 2)
 
-# Add legend at bottom right inside the plot, smaller size
 legend(
   "bottomright",
-  legend = c("Data", "Regression Line"),
-  col = c("#377eb8", "#e41a1c"),
-  pch = c(19, NA),
-  lty = c(NA, 1),
-  lwd = c(NA, 2),
+  legend = c("Data Density", "Regression Line"),
+  fill = c("#377eb8", "#e41a1c"), # Use fill for smoothScatter legend
   bty = "n",
-  pt.cex = 0.8,
-  cex = 0.85,
-  x.intersp = 1.1,
-  y.intersp = 1
+  cex = 0.85
 )
 
-# Extract values for the formula
-b0 <- round(coef(lm_fit)[1], 2) # Intercept
-b1 <- round(coef(lm_fit)[2], 2) # Slope
-rse <- round(summary(lm_fit)$sigma, 2)   # Residual Standard Error
+# Extract values for the formula.
+b0  <- round(coef(lm_fit)[1], 2) # Intercept
+b1  <- round(coef(lm_fit)[2], 2) # Slope
+rse <- round(lm_sum$sigma, 2)   # Residual Std Error
+r2  <- round(lm_sum$r.squared, 4) # R-squared
 
 par(mar = c(5, 4, 4, 2) + 0.1)
 
-# Regression summary as a table (no duplicate row index)
-summary(lm_fit)
+# Coefficient Table.
+coeffs <- data.frame(
+  Predictor     = c("Intercept", "Years at Company"),
+  Estimate      = round(coef(lm_fit), 2),
+  `Std Error`   = round(lm_sum$coefficients[, "Std. Error"], 2),
+  `t-Statistic` = round(lm_sum$coefficients[, "t value"], 2),
+  `p-Value`     = format.pval(lm_sum$coefficients[, "Pr(>|t|)"], eps = 0.001)
+)
+rownames(coeffs) <- NULL
+
+knitr::kable(
+  coeffs, 
+  align = 'c', 
+  caption = "Linear Regression Coefficients"
+)
+
+fit_stats <- data.frame(
+  Measure = c("R-Squared", "Residual Std. Error (RSE)", "Observations"),
+  Value   = c(
+    round(lm_sum$r.squared, 4),
+    round(lm_sum$sigma, 2),
+    format(nobs(lm_fit), big.mark = ",")
+  )
+)
+
+knitr::kable(
+  fit_stats, 
+  align   = 'l', 
+  caption = "Model Goodness of Fit"
+)
 ```
 
 **Regression Equation:**
 $$\widehat{\text{MonthlyIncome}} = `r b0` + `r b1`(\text{YearsAtCompany})$$
 
-**Model Fit:**
-$$\text{Residual Standard Error} = `r rse`$$
+**Interpretation:** The analysis confirms a significant positive link ($p < 0.001$) where income grows by **\$395/year** from a **\$3,733** baseline. However, tenure explains only **26.45%** of the variance ($R^2=0.26$), and the **high residual error** _(4,039)_ implies that compensation is largely driven by other factors like role or performance.
 
-**Interpretation:** The regression analysis confirms a statistically significant positive relationship between tenure and compensation ($p < 0.001$). The model estimates that for every additional year an employee stays at the company, their monthly income increases by approximately **$395**, starting from a baseline of **$3,733**. However, the residual standard error of **4,039** suggests considerable variability in income that tenure alone does not explain.
+# Conclusion I
 
-# Conclusion
 This report conducted a descriptive and exploratory statistical analysis of the IBM HR Employee Attrition dataset to examine workforce structure and key factors associated with employee turnover. The analysis revealed a relatively low attrition rate, indicating overall workforce stability, supported by generally high levels of job satisfaction and work–life balance.
 
 Bivariate analysis showed that attrition is more common among younger employees with lower tenure and lower monthly income, suggesting that employee turnover is primarily an early-career phenomenon. Employees reporting low job satisfaction were disproportionately more likely to leave the organization, highlighting the importance of employee sentiment in retention.
 
 Finally, the regression analysis confirmed a statistically significant positive relationship between years at company and monthly income, although the moderate explanatory power indicates that tenure alone does not fully explain income variation. Overall, the findings emphasize the need for targeted retention strategies focused on early-career employees to enhance long-term organizational stability.
+
+# Conclusion II
+
+This report characterized the IBM workforce structure and attrition dynamics through a rigorous descriptive statistical framework. Univariate analysis revealed that key quantitative variables - specifically **Monthly Income** and **Years at Company** are strongly **right-skewed**, with means consistently exceeding medians. This distributional asymmetry indicates that "average" workforce metrics are inflated by a small cohort of high-tenure, high-income outliers, suggesting that median values serve as more robust central estimators for this population.
+
+Bivariate investigation identified statistically distinct profiles for attrition. Contingency table analysis quantified the risk of low morale: employees with 'Low' job satisfaction exhibited a conditional attrition rate of **28%**, compared to only **18%** among their retained counterparts. Demographic comparisons further contextualized turnover as an early-career phenomenon, with boxplots confirming that attrition is statistically concentrated in the lower quartiles of the Age _(Median: 32 vs 36)_ and Tenure distributions
+
+Finally, the linear regression analysis established a statistically significant **positive relationship** ($p < 0.001$) between _tenure_ and _compensation_. However, the model's moderate coefficient of determination ($R^2 \approx 0.26$) and **high residual standard error** ($4,039$) demonstrate that tenure is a necessary but insufficient predictor of income. The substantial unexplained variance implies that unobserved heterogeneity-likely driven by **Job Level** or some other variables we did not include - plays a dominant role in the organization's compensation structure.
