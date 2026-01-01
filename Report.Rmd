@@ -27,6 +27,9 @@ header-includes:
 output:
   pdf_document:
     number_sections: true
+    citation_package: natbib
+bibliography: references.bib
+biblio-style: abbrvnat
 ---
 
 ```{r setup, echo = FALSE, message = FALSE, warning = FALSE}
@@ -37,6 +40,7 @@ rm(list = ls(all.names = TRUE))
 # Load Packages.
 library(dplyr)
 library(ggplot2)
+library(knitr)
 
 # Global Chunk Options. [Ref: https://lms.bht-berlin.de/mod/folder/view.php?id=1419650]
 # 'dev' checks if it's PDF to use high-quality rendering, otherwise standard.
@@ -179,7 +183,7 @@ analyze_numeric <- function(data_vec,
 
 # Introduction
 
-The IBM HR Employee Attrition workforce data is organized as a data matrix of observations and qualitative and quantitative variables. This report performs a comprehensive descriptive statistical analysis to summarize the distribution of individual variables using frequencies, measure of location, and measure of dispersion. Bivariate techniques, including contingency tables and correlation coefficients, are applied to investigate the joint behavior and co-dependency between employee attributes and attrition. Furthermore, simple linear regression is utilized to model the linear relationship between tenure and monthly income by estimating the regression coefficients.
+The IBM HR Employee Attrition workforce data is organized as a data matrix of observations and qualitative and quantitative variables. This report performs a comprehensive descriptive statistical analysis to summarize the distribution of individual variables using frequencies, measure of location, and measure of dispersion. Bivariate techniques, including contingency tables and correlation coefficients, are applied to investigate the joint behavior and co-dependency between employee attributes and attrition. Furthermore, simple linear regression is utilized to model the linear relationship between tenure and monthly income by estimating the regression coefficients. The analysis employs visualization tools from **ggplot2** [@R-ggplot2] and **graphics** [@R-graphics] packages, with tabular summaries generated using **knitr** [@R-knitr].
 
 ## Data Loading & Feature Selection
 
@@ -594,7 +598,7 @@ lm_sum <- summary(lm_fit)
 
 par(mar = c(4, 4, 2, 1)) # Reduce margins.
 
-# Simple base R scatter plot with regression line.
+# Simple base R scatter plot with regression line using smoothScatter [@R-graphics].
 smoothScatter(
   hr$YearsAtCompany,
   hr$MonthlyIncome,
@@ -668,3 +672,7 @@ This report characterized the IBM workforce structure and attrition dynamics thr
 Bivariate investigation identified statistically distinct profiles for attrition. Contingency table analysis quantified the risk of low morale: employees with 'Low' job satisfaction exhibited a conditional attrition rate of **28%**, compared to only **18%** among their retained counterparts. Demographic comparisons further contextualized turnover as an early-career phenomenon, with boxplots confirming that attrition is statistically concentrated in the lower quartiles of the **Age** _(Median: 32 vs 36)_ and **Tenure** distributions
 
 Finally, the linear regression analysis established a statistically significant **positive relationship** ($p < 0.001$) between _tenure_ and _compensation_. However, the model's moderate coefficient of determination ($R^2 \approx 0.26$) and **high residual standard error** ($4,039$) demonstrate that tenure is a necessary but insufficient predictor of income. The substantial unexplained variance implies that unobserved heterogeneity-likely driven by **Job Level** or some other variables we did not include - plays a dominant role in the organization's compensation structure.
+
+# References
+
+<div id="refs"></div>
