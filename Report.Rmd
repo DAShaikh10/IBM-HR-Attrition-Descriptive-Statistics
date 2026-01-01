@@ -620,3 +620,8 @@ $$\text{Residual Standard Error} = `r rse`$$
 **Interpretation:** The regression analysis confirms a statistically significant positive relationship between tenure and compensation ($p < 0.001$). The model estimates that for every additional year an employee stays at the company, their monthly income increases by approximately **$395**, starting from a baseline of **$3,733**. However, the residual standard error of **4,039** suggests considerable variability in income that tenure alone does not explain.
 
 # Conclusion
+This report conducted a descriptive and exploratory statistical analysis of the IBM HR Employee Attrition dataset to examine workforce structure and key factors associated with employee turnover. The analysis revealed a relatively low attrition rate, indicating overall workforce stability, supported by generally high levels of job satisfaction and work–life balance.
+
+Bivariate analysis showed that attrition is more common among younger employees with lower tenure and lower monthly income, suggesting that employee turnover is primarily an early-career phenomenon. Employees reporting low job satisfaction were disproportionately more likely to leave the organization, highlighting the importance of employee sentiment in retention.
+
+Finally, the regression analysis confirmed a statistically significant positive relationship between years at company and monthly income, although the moderate explanatory power indicates that tenure alone does not fully explain income variation. Overall, the findings emphasize the need for targeted retention strategies focused on early-career employees to enhance long-term organizational stability.
