@@ -499,17 +499,13 @@ boxplot(
 
 # Encode Attrition as numeric (Yes = 1, No = 0)
 attrition_numeric <- as.numeric(hr$Attrition) - 1
-
-# Pearson and Spearman correlation
-pearson_r  <- round(cor(hr$MonthlyIncome, attrition_numeric, method = "pearson"), 2)
-spearman_r <- round(cor(hr$MonthlyIncome, attrition_numeric, method = "spearman"), 2)
 ```
 
-**Interpretation:** Employees who left the organization earn lower monthly incomes than those who stayed, as reflected in both mean and median values.The weak negative Pearson (**`r pearson_r`**) and Spearman (**`r spearman_r`**) correlations indicate that higher income is associated with a lower likelihood of attrition.
+**Interpretation:** Employees who left the organization earn lower monthly incomes than those who stayed, as reflected in both mean and median values.
 
 ## Demographics & Attrition
 We examine the demographic profile of the workforce, specifically focusing on Age and Years at Company (Tenure). We compare the distributions of these variables across attrition groups to determine if younger or newer employees are at higher risk of leaving
-```{r demographics-attrition, fig.cap="Demographic Drivers of Attrition: (Left) Age distribution showing a lower median age for leavers; (Right) Tenure distribution showing early-stage attrition among new hires."}
+```{r demographics-attrition, fig.cap="Demographic Drivers of Attrition: (Left) Age distribution showing a lower median age for leavers; (Right) Tenure distribution showing early-stage attrition among new hires.", fig.pos = 'H'}
 
 par(mar = c(4, 4, 2, 1))
 
@@ -545,7 +541,34 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 
 # Linear Regression Analysis
 
-Following the bivariate analysis, which identified a moderate positive correlation ($r = 0.51$) between tenure and compensation, this section utilizes Simple Linear Regression to quantify this relationship. The goal is to model Monthly Income (Dependent Variable) as a function of Years at Company (Independent Variable). By estimating the regression coefficients, we aim to determine the financial premium associated with employee longevity and assess how well tenure predicts overall earnings.
+## Correlation Analysis: Years at Company vs Monthly Income
+
+Before proceeding with regression modeling, we examine the strength and nature of the relationship between tenure (Years at Company) and compensation (Monthly Income) using both Pearson and Spearman correlation coefficients. Pearson correlation measures the linear association between two continuous variables, while Spearman correlation assesses monotonic relationships based on ranked data and is more robust to outliers.
+
+```{r correlation-years-income}
+
+# Calculate Pearson correlation
+pearson_corr <- cor(hr$YearsAtCompany, hr$MonthlyIncome, method = "pearson")
+
+# Calculate Spearman correlation
+spearman_corr <- cor(hr$YearsAtCompany, hr$MonthlyIncome, method = "spearman")
+
+# Create correlation table
+correlation_table <- data.frame(
+  `Correlation Type` = c("Pearson", "Spearman"),
+  `Coefficient` = c(pearson_corr, spearman_corr),
+  check.names = FALSE
+)
+
+knitr::kable(
+  correlation_table,
+  align = c('l', 'c'),
+  caption = "Pearson and Spearman Correlations: Years at Company vs Monthly Income",
+  digits = 3
+)
+```
+
+**Interpretation:** Both correlation coefficients reveal a **moderate positive relationship** between tenure and income. The Pearson correlation ($r$ = `r round(pearson_corr, 3)`) indicates a moderate linear association, while the Spearman correlation ($\rho$ = `r round(spearman_corr, 3)`) confirms that this relationship is consistently monotonic. The similarity between the two values suggests that the relationship is approximately linear without substantial influence from extreme outliers. This justifies the use of linear regression to model the relationship between these variables.
 
 ## Linear Regression: Monthly Income vs Years at Company
 
