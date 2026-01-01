@@ -481,6 +481,8 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 
 ## Financial Factors & Attrition
 
+This section examines the relationship between Monthly Income and employee attrition to assess whether compensation levels differ between employees who stay and those who leave the organization. Group-wise summary statistics and correlation coefficients are used to describe the association between income and attrition status.
+
 ```{r monthly-income-attrition-bivariate}
 
 income_by_attrition <- data.frame(
@@ -494,27 +496,24 @@ knitr::kable(
   digits = 2
 )
 
+boxplot(
+  MonthlyIncome ~ Attrition,
+  data = hr,
+  col = c("lightblue", "salmon"),
+  main = "Monthly Income by Attrition",
+  xlab = "Attrition Status",
+  ylab = "Monthly Income (USD)"
+)
+
 # Encode Attrition as numeric (Yes = 1, No = 0)
 attrition_numeric <- as.numeric(hr$Attrition) - 1
 
 # Pearson and Spearman correlation
-cor_table <- data.frame(
-  Statistic = c("Pearson correlation", "Spearman correlation"),
-  Value = round(c(
-    cor(hr$MonthlyIncome, attrition_numeric, method = "pearson"),
-    cor(hr$MonthlyIncome, attrition_numeric, method = "spearman")
-  ), 2)
-)
-
-knitr::kable(
-  cor_table,
-  align = c('l', 'c'),
-  caption = "Correlation Coefficients: Monthly Income vs Attrition",
-  digits = 2
-)  
+pearson_r  <- round(cor(hr$MonthlyIncome, attrition_numeric, method = "pearson"), 2)
+spearman_r <- round(cor(hr$MonthlyIncome, attrition_numeric, method = "spearman"), 2)
 ```
 
-\newpage
+**Interpretation:** Employees who left the organization earn lower monthly incomes than those who stayed, as reflected in both mean and median values.The weak negative Pearson (**`r pearson_r`**) and Spearman (**`r spearman_r`**) correlations indicate that higher income is associated with a lower likelihood of attrition.
 
 ## Demographics & Attrition
 We examine the demographic profile of the workforce, specifically focusing on Age and Years at Company (Tenure). We compare the distributions of these variables across attrition groups to determine if younger or newer employees are at higher risk of leaving
