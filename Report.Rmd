@@ -469,13 +469,13 @@ barplot(
 par(mar = c(5, 4, 4, 2) + 0.1)
 ```
 
-**Interpretation:** The analysis identifies low job satisfaction as a driver of attrition. Among employees who left the organization, 28% reported 'Low' satisfaction, compared to only 18% among those who stayed. The bar chart visually confirms this trend: as satisfaction levels rise, the volume of retained employees (Blue) increases substantially, indicating that higher morale is strongly linked to workforce stability.
+**Interpretation:** The analysis identifies **low** job satisfaction as a driver of attrition. Among employees who left the organization, **28%** reported 'Low' satisfaction, compared to only **18%** among those who stayed. The bar chart visually confirms this trend: as **satisfaction levels rise**, the volume of **retained employees** _(Blue)_ **increases** substantially, indicating that higher morale is strongly linked to workforce stability.
 
-## Financial Factors & Attrition
+## Financial Factors & Attrition (Numeric vs. Categorical)
 
-This section examines the relationship between Monthly Income and employee attrition to assess whether compensation levels differ between employees who stay and those who leave the organization. Group-wise summary statistics and correlation coefficients are used to describe the association between income and attrition status.
+This section examines the relationship between **Monthly Income** and employee **Attrition** to assess whether compensation levels differ between employees who stay and those who leave the organization. Group-wise summary statistics and correlation coefficients are used to describe the association between income and attrition status.
 
-```{r monthly-income-attrition-bivariate}
+```{r monthly-income-vs-attrition}
 
 income_by_attrition <- data.frame(
   Mean   = tapply(hr$MonthlyIncome, hr$Attrition, mean),
@@ -501,18 +501,17 @@ boxplot(
 attrition_numeric <- as.numeric(hr$Attrition) - 1
 ```
 
-**Interpretation:** Employees who left the organization earn lower monthly incomes than those who stayed, as reflected in both mean and median values.
+**Interpretation:** Employees who left the organization earn **lower monthly incomes** than those who stayed, as reflected in both mean and median values.
 
-## Demographics & Attrition
-We examine the demographic profile of the workforce, specifically focusing on Age and Years at Company (Tenure). We compare the distributions of these variables across attrition groups to determine if younger or newer employees are at higher risk of leaving
-```{r demographics-attrition, fig.cap="Demographic Drivers of Attrition: (Left) Age distribution showing a lower median age for leavers; (Right) Tenure distribution showing early-stage attrition among new hires.", fig.pos = 'H'}
+## Demographics & Attrition (Numeric vs. Numeric)
 
-par(mar = c(4, 4, 2, 1))
+We examine the demographic profile of the workforce, specifically focusing on **Age** and **Years at Company** _(Tenure)_. We compare the distributions of these variables across attrition groups to determine if younger or newer employees are at higher risk of leaving.
 
-# Set up side-by-side plotting area
+```{r demographics-vs-attrition, fig.cap="Demographic Drivers of Attrition: (Left) Age distribution showing a lower median age for leavers; (Right) Tenure distribution showing early-stage attrition among new hires.", fig.pos = 'H'}
+
 par(mfrow = c(1, 2))
+par(mar = c(4, 4, 2, 1)) # Reduce margins.
 
-# 1. Age vs Attrition
 boxplot(
   Age ~ Attrition,
   data = hr,
@@ -522,7 +521,6 @@ boxplot(
   col  = c("lightblue", "salmon")
 )
 
-# 2. Years at Company vs Attrition
 boxplot(
   YearsAtCompany ~ Attrition,
   data = hr,
@@ -537,38 +535,34 @@ par(mfrow = c(1, 1))
 par(mar = c(5, 4, 4, 2) + 0.1)
 ```
 
-**Interpretation:** The analysis confirms that attrition is primarily an early-career phenomenon. Employees who leave are generally younger (median age 32 vs. 36) and have significantly shorter tenure (median 3 years vs. 6 years) compared to those who stay. This indicates that the organization struggles most with retaining new and junior talent, rather than long-term employees.
+**Interpretation:** The analysis confirms that attrition is primarily an **early-career phenomenon**. Employees who leave are generally **younger** _(median age 32 vs. 36)_ and have significantly **shorter tenure** _(median 3 years vs. 6 years)_ compared to those who stay. This indicates that the organization struggles most with retaining new and junior talent, rather than long-term employees.
 
 # Linear Regression Analysis
 
-## Correlation Analysis: Years at Company vs Monthly Income
+## Correlation Analysis: Years at Company vs Monthly Income (Numeric vs Numeric)
 
-Before proceeding with regression modeling, we examine the strength and nature of the relationship between tenure (Years at Company) and compensation (Monthly Income) using both Pearson and Spearman correlation coefficients. Pearson correlation measures the linear association between two continuous variables, while Spearman correlation assesses monotonic relationships based on ranked data and is more robust to outliers.
+Before proceeding with regression modeling, we examine the strength and nature of the relationship between **tenure** _(Years at Company)_ and **compensation** _(Monthly Income)_ using both **Pearson** and **Spearman** correlation coefficients. Pearson correlation measures the linear association between two continuous variables, while Spearman correlation assesses monotonic relationships based on ranked data and is more robust to outliers.
 
-```{r correlation-years-income}
+```{r years-income-correlation}
 
-# Calculate Pearson correlation
-pearson_corr <- cor(hr$YearsAtCompany, hr$MonthlyIncome, method = "pearson")
-
-# Calculate Spearman correlation
 spearman_corr <- cor(hr$YearsAtCompany, hr$MonthlyIncome, method = "spearman")
+pearson_corr  <- cor(hr$YearsAtCompany, hr$MonthlyIncome, method = "pearson")
 
-# Create correlation table
 correlation_table <- data.frame(
   `Correlation Type` = c("Pearson", "Spearman"),
-  `Coefficient` = c(pearson_corr, spearman_corr),
-  check.names = FALSE
+  `Coefficient`      = c(pearson_corr, spearman_corr),
+  check.names        = FALSE
 )
 
 knitr::kable(
   correlation_table,
-  align = c('l', 'c'),
+  align   = c('l', 'c'),
   caption = "Pearson and Spearman Correlations: Years at Company vs Monthly Income",
-  digits = 3
+  digits  = 2
 )
 ```
 
-**Interpretation:** Both correlation coefficients reveal a **moderate positive relationship** between tenure and income. The Pearson correlation ($r$ = `r round(pearson_corr, 3)`) indicates a moderate linear association, while the Spearman correlation ($\rho$ = `r round(spearman_corr, 3)`) confirms that this relationship is consistently monotonic. The similarity between the two values suggests that the relationship is approximately linear without substantial influence from extreme outliers. This justifies the use of linear regression to model the relationship between these variables.
+**Interpretation:** The correlation coefficients reveal a **positive** relationship between **tenure** and **income** that borders between **weak** and **medium** strength. The **Pearson** correlation **($r = `r round(pearson_corr, 2)`$)** indicates a **medium** correlation _(just exceeding the 0.5 threshold)_, while the **Spearman** correlation **($\rho = `r round(spearman_corr, 2)`$)** falls within the **weak** correlation range. The consistency of both signs confirms a positive association, justifying the exploration of a linear model, though the moderate-to-weak strength suggests variability that tenure alone cannot explain.
 
 ## Linear Regression: Monthly Income vs Years at Company
 
