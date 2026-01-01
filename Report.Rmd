@@ -415,6 +415,8 @@ analyze_numeric(
 )
 ```
 
+\newpage
+
 **Interpretation:** The age distribution is approximately symmetric and bell-shaped, spanning from **18** to **60** years with a standard deviation of **9.14**. The moderate variability **(IQR = 13)** indicates that the middle 50% of the workforce is concentrated within a relatively narrow age band, suggesting a demographically balanced employee base without extreme skewness. The ECDF reinforces this concentration with a steep incline between ages **30** and **45**, indicating that the majority of the workforce density accumulates in this mid-career bracket. The curve crosses the 0.5 cumulative probability threshold at approximately **36 years**, confirming the median, before tapering off near age **60**.
 
 ### Years At Company (Numeric)
@@ -525,6 +527,7 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 **Interpretation:** Employees who left the organization earn **lower monthly incomes** than those who stayed, as reflected in both mean and median values.
 
 \newpage
+
 ## Demographics & Attrition (Numeric vs. Numeric)
 
 We examine the demographic profile of the workforce, specifically focusing on **Age** and **Years at Company** _(Tenure)_. We compare the distributions of these variables across attrition groups to determine if younger or newer employees are at higher risk of leaving.
@@ -583,6 +586,8 @@ knitr::kable(
   digits  = 2
 )
 ```
+
+\newpage
 
 **Interpretation:** The correlation coefficients reveal a **positive** relationship between **tenure** and **income** that borders between **weak** and **medium** strength. The **Pearson** correlation **($r = `r round(pearson_corr, 2)`$)** indicates a **medium** correlation _(just exceeding the 0.5 threshold)_, while the **Spearman** correlation **($\rho = `r round(spearman_corr, 2)`$)** falls within the **weak** correlation range. The consistency of both signs confirms a positive association, justifying the exploration of a linear model, though the moderate-to-weak strength suggests variability that tenure alone cannot explain.
 
