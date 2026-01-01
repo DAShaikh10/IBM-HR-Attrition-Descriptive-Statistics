@@ -1,6 +1,6 @@
 ---
 title: "IBM HR Employee Attrition Descriptive Analysis"
-subtitle: "Statistical Computing Group Project"
+subtitle: "Statistical Computing WiSe '25 - Group Project"
 author: "Amaan Shaikh | Danish Ali Shaikh | Rajat Pandey"
 fontsize: 11pt
 geometry: margin=0.5in
@@ -30,9 +30,9 @@ library(ggplot2)
 # Global Chunk Options. [Ref: https://lms.bht-berlin.de/mod/folder/view.php?id=1419650]
 # 'dev' checks if it's PDF to use high-quality rendering, otherwise standard.
 knitr::opts_chunk$set(
-  echo = FALSE,
-  warning = FALSE,
-  message = FALSE,
+  echo      = FALSE,
+  warning   = FALSE,
+  message   = FALSE,
   fig.align = "center"
 )
 
@@ -45,7 +45,7 @@ theme_set(theme_minimal())
 # ----------------- Helper functions to follow 'DRY' policy.--------------------
 
 # This function allows for generating absolute, relative,
-# cumulative absolute, cumulative relative frequencies as  a table.
+# cumulative absolute, and cumulative relative frequencies as a table.
 #
 # Arguments:
 #   x:  any R object for which frequencies are to be obtained.
@@ -60,33 +60,31 @@ print_freq_table <- function(x,
                              caption = NULL,
                              show_cumulative = FALSE,
                              show_mode = FALSE) {
-  df <- as.data.frame(table(x))
-  colnames(df) <- c(var_name, "Frequency")
+  df            <- as.data.frame(table(x))
+  colnames(df)  <- c(var_name, "Frequency")
   
   df$Proportion <- df$Frequency / sum(df$Frequency) * 100
-  
   if (show_cumulative) {
     df$`Cum. Freq.` <- cumsum(df$Frequency)
-    df$`Cum. %` <- cumsum(df$Proportion)
+    df$`Cum. %`     <- cumsum(df$Proportion)
   }
   
   if (show_mode) {
-    mode_value <- df[[var_name]][which.max(df$Frequency)]
+    mode_value     <- df[[var_name]][which.max(df$Frequency)]
     df[[var_name]] <- ifelse(df[[var_name]] == mode_value,
                              paste0("**", df[[var_name]], " (Mode)**"),
                              as.character(df[[var_name]]))
   }
-  
+
   if (is.null(caption)) {
     caption <- paste(var_name, "Frequency Table")
   }
   
   knitr::kable(
     df,
-    align = c('l', 'c', 'c', 'c', 'c'),
+    align   = c('l', 'c', 'c', 'c', 'c'),
     caption = caption,
-    digits = 2,
-    format = "markdown"
+    digits  = 2,
   )
 }
 
@@ -113,56 +111,54 @@ analyze_numeric <- function(data_vec,
                             col_fill,
                             col_border,
                             col_line) {
-  quants <- quantile(data_vec, probs = c(0.25, 0.5, 0.75))
-  
+  quantiles <- quantile(data_vec, probs = c(0.25, 0.5, 0.75))
   stats_df <- data.frame(
     Mean     = mean(data_vec),
-    `1st Q`  = quants["25%"],
-    Median   = quants["50%"],
-    `3rd Q`  = quants["75%"],
+    `1st Q`  = quantiles["25%"],
+    Median   = quantiles["50%"],
+    `3rd Q`  = quantiles["75%"],
     Variance = var(data_vec),
     SD       = sd(data_vec),
     Range    = paste(range(data_vec), collapse = " – "),
     IQR      = IQR(data_vec),
-    check.names = FALSE
+    check.names = FALSE # Allow `1st Q`.
   )
   
-  rownames(stats_df) <- NULL
+  rownames(stats_df) <- NULL # Remove row names for a cleaner table.
   
   # We use print() so it renders even when called inside a function.
   print(knitr::kable(
     stats_df,
-    align = 'c',
+    align   = 'c',
     caption = paste(
       "Descriptive Statistics:",
       var_name,
       "(Location & Dispersion)"
     ),
-    digits = 2,
-    format = "markdown"
+    digits  = 2
   ))
   
   par(mfrow = c(1, 2))
-  par(mar = c(4, 4, 2, 1))
+  par(mar = c(4, 4, 2, 1)) # Reduce margins.
   
   boxplot(
     data_vec,
-    main = paste("Boxplot of", var_name),
-    ylab = var_name,
-    col = col_fill,
-    border = col_border,
+    main        = paste("Boxplot of", var_name),
+    ylab        = var_name,
+    col         = col_fill,
+    border      = col_border,
     outlier.col = col_border
   )
   
   plot(
     ecdf(data_vec),
-    main = paste("ECDF of", var_name),
-    xlab = var_name,
-    ylab = paste("F(", var_name, ")", sep = ""),
-    col = col_line,
-    lwd = 2,
+    main      = paste("ECDF of", var_name),
+    xlab      = var_name,
+    ylab      = paste0("F(", var_name, ")"),
+    col       = col_line,
+    lwd       = 2,
     verticals = TRUE,
-    pch = NA
+    pch       = NA
   )
   
   # Reset Layout.
@@ -194,25 +190,25 @@ hr       <- raw_data[, c("Age", "Attrition", "JobLevel",
 
 # Nominal Variables.
 hr$Attrition <- as.factor(hr$Attrition)
-hr$OverTime <- as.factor(hr$OverTime)
+hr$OverTime  <- as.factor(hr$OverTime)
 
 # Ordinal Variables.
 hr$JobLevel <- factor(
   hr$JobLevel,
-  levels = 1:5,
-  labels = c("Entry Level", "Junior", "Mid Level", "Senior", "Executive"),
+  levels  = 1:5,
+  labels  = c("Entry Level", "Junior", "Mid Level", "Senior", "Executive"),
   ordered = TRUE
 )
 hr$JobSatisfaction <- factor(
   hr$JobSatisfaction,
-  levels = 1:4,
-  labels = c("Low", "Medium", "High", "Very High"),
+  levels  = 1:4,
+  labels  = c("Low", "Medium", "High", "Very High"),
   ordered = TRUE
 )
 hr$WorkLifeBalance <- factor(
   hr$WorkLifeBalance,
-  levels = 1:4,
-  labels = c("Bad", "Good", "Better", "Best"),
+  levels  = 1:4,
+  labels  = c("Bad", "Good", "Better", "Best"),
   ordered = TRUE
 )
 ```
@@ -228,11 +224,11 @@ knitr::kable(t(head(hr)), caption = "First six observations (Transposed View)")
 
 # Univariate Analysis
 
-This section characterizes the workforce structure by analyzing the frequency distributions, measure of location, and dispersion of key sentiment, financial, and demographic variables.
+This section characterizes the workforce structure by analyzing the frequency distributions, measure of location, and dispersion of key **sentiment**, **financial**, and **demographic** variables.
 
 ## Target & Sentiment
 
-This section performs a uni-variate analysis to characterize employee sentiment and professional status, examining the frequency distributions of key qualitative variables.
+This section performs a uni-variate analysis to characterize employee **sentiment** and **professional status**, examining the frequency distributions of key qualitative variables.
 
 \newpage
 
@@ -242,10 +238,9 @@ This section performs a uni-variate analysis to characterize employee sentiment 
 
 print_freq_table(hr$Attrition, "Attrition Status")
 
-ggplot(hr, aes(x = Attrition, fill = Attrition)) +
-  # Bars
-  geom_bar(width = 0.7) +
-  # Labels (Counts inside bars)
+ggplot(hr,
+  aes(x = Attrition, fill = Attrition)) +
+  geom_bar(width = 0.7) + # Bars
   geom_text(
     stat = 'count',
     aes(label = ..count..),
@@ -258,11 +253,11 @@ ggplot(hr, aes(x = Attrition, fill = Attrition)) +
   labs(title = "Attrition Status Barplot", x = "Attrition Status", y = "Absolute Frequency")
 ```
 
-**Interpretation:** The analysis reveals a significant class imbalance, with 1,233 (83.9%) active employees versus 237 (16.1%) attrition cases. This distribution confirms a stable workforce and establishes a realistic baseline turnover rate for subsequent bivariate comparisons.
+**Interpretation:** The analysis reveals a significant **class imbalance**, with **1,233** _(83.88%)_ active employees versus **237** _(16.12%)_ attrition cases. This distribution confirms a stable workforce and establishes a realistic baseline turnover rate for subsequent bivariate comparisons.
 
 ### Job Satisfaction (Ordinal)
 
-```{r job-satisfaction-univariate, results = 'asis'}
+```{r job-satisfaction-univariate}
 
 print_freq_table(
   hr$JobSatisfaction,
@@ -272,11 +267,11 @@ print_freq_table(
 )
 ```
 
-**Interpretation:** The data indicates high employee morale, with "Very High" (31.2%, n=459) as the modal category. Cumulatively, over 61% of the workforce reports positive satisfaction (High or Very High), significantly outweighing the 19.7% who report Low satisfaction.
+**Interpretation:** The data indicates **high** employee morale, with **"Very High"** _(31.2%, n=459)_ as the **modal** category. Cumulatively, over **61.29%** of the workforce reports **positive satisfaction** (High or Very High), significantly outweighing the **19.66%** who report **low** satisfaction.
 
 ### Work Life Balance (Ordinal)
 
-```{r work-life-balance-univariate, results = 'asis'}
+```{r work-life-balance-univariate}
 
 print_freq_table(
   hr$WorkLifeBalance,
@@ -286,11 +281,11 @@ print_freq_table(
 )
 ```
 
-**Interpretation:** The data reveals a strong skew toward positive work-life balance, with "Better" (60.8%, n=893) as the dominant modal category. Cumulatively, 71.2% of the workforce falls into the top two tiers ("Better" or "Best"), while only 5.4% report a "Bad" balance.
+**Interpretation:** The data reveals a **strong skew** toward positive work-life balance, with **"Better"** _(60.8%, n=893)_ as the dominant **modal** category. Cumulatively, **71.16%** of the workforce falls into the **top two tiers** ("Better" or "Best"), while only **5.44%** report a "Bad" balance.
 
 ## Financial Structure
 
-This section summarizes the job hierarchy, income distribution, and overtime status of employees using uni-variate descriptive statistics and graphical representations to describe the compensation structure and workload intensity.
+This section summarizes the **job hierarchy**, **income distribution**, and **overtime** status of employees using uni-variate descriptive statistics and graphical representations to describe the compensation structure and workload intensity.
 
 ### Job Level (Ordinal)
 
@@ -304,7 +299,7 @@ print_freq_table(
 )
 ```
 
-**Interpretation:** The workforce structure exhibits a distinct pyramidal hierarchy, heavily concentrated in early-career roles. Entry Level (36.9%, n=543) and Junior (36.3%, n=534) positions dominate, cumulatively accounting for 73.3% of the organization. In contrast, upper management is exclusive, with Executives representing only 4.7% of the total population.
+**Interpretation:** The workforce structure exhibits a distinct pyramidal hierarchy, heavily concentrated in early-career roles. **Entry Level** _(36.9%, n=543)_ and **Junior** _(36.3%, n=534)_ positions **dominate**, cumulatively accounting for **73.27%** of the organization. In contrast, upper management is exclusive, with Executives representing only **4.69%** of the total population.
 
 ### Monthly Income (Continuous)
 
@@ -314,17 +309,16 @@ avg_inc <- mean(hr$MonthlyIncome)
 med_inc <- median(hr$MonthlyIncome)
 quants  <- quantile(hr$MonthlyIncome, probs = c(0.25, 0.5, 0.75))
 
-par(mar = c(4, 4, 2, 1))
+par(mar = c(4, 4, 2, 1)) # Reduce margins. 
 
 hist(
   hr$MonthlyIncome,
-  main = "Distribution of Monthly Income",
-  xlab = "Monthly Income (USD)",
-  ylab = "Absolute Frequency",
-  col = "steelblue",
+  main   = "Distribution of Monthly Income",
+  xlab   = "Monthly Income (USD)",
+  ylab   = "Absolute Frequency",
+  col    = "steelblue",
   border = "white",
-  # Increase Y-limit to ensure legend fits clearly.
-  ylim = c(0, 400)
+  ylim   = c(0, 400) # Increase Y-limit to ensure legend fits clearly.
 )
 
 # Add Vertical Lines (Mean & Median)
@@ -335,50 +329,49 @@ abline(
   lty = 2
 )
 abline(
-  v = med_inc,
+  v   = med_inc,
   col = "navy",
   lwd = 2,
   lty = 1
 )
 
-# Add Combined Legend
 legend(
   "topright",
   legend = c(paste("Mean:", round(avg_inc, 0)), paste("Median:", round(med_inc, 0))),
-  col = c("firebrick", "navy"),
-  lwd = 2,
-  lty = c(2, 1),
-  # Match line types (2=Dashed, 1=Solid)
-  bty = "n",
-  cex = 0.9
+  col    = c("firebrick", "navy"),
+  lwd    = 2,
+  lty    = c(2, 1), # Match line types (2=Dashed, 1=Solid)
+  bty    = "n",
+  cex    = 0.9
 )
 
-par(mar = c(5, 4, 4, 2) + 0.1)
+par(mar = c(5, 4, 4, 2) + 0.1) # Reset margins.
 
 # Create Expanded Statistics Table.
 inc_stats <- data.frame(
-  Mean     = avg_inc,
-  `1st Q`  = quants["25%"],
-  Median   = quants["50%"],
-  `3rd Q`  = quants["75%"],
-  Variance = var(hr$MonthlyIncome),
-  SD       = sd(hr$MonthlyIncome),
-  Range    = paste(range(hr$MonthlyIncome), collapse = " – "),
-  IQR      = IQR(hr$MonthlyIncome)
+  Mean        = avg_inc,
+  `1st Q`     = quants["25%"],
+  Median      = quants["50%"],
+  `3rd Q`     = quants["75%"],
+  Variance    = var(hr$MonthlyIncome),
+  SD          = sd(hr$MonthlyIncome),
+  Range       = paste(range(hr$MonthlyIncome), collapse = " – "),
+  IQR         = IQR(hr$MonthlyIncome),
+  check.names = FALSE # Allow `1st Q`.
 )
 
-# Remove row names (usually "25%" etc) for a cleaner table
+# Remove row names for a cleaner table.
 rownames(inc_stats) <- NULL
 
 knitr::kable(
   inc_stats,
-  align = 'c',
+  align   = 'c',
   caption = "Descriptive Statistics: Monthly Income (Location & Dispersion)",
-  digits = 2
+  digits  = 2
 )  
 ```
 
-**Interpretation:** The workforce structure exhibits a distinct pyramidal hierarchy, heavily concentrated in early-career roles. Entry Level (36.9%, n=543) and Junior (36.3%, n=534) positions dominate, cumulatively accounting for 73.3% of the organization. In contrast, upper management is exclusive, with Executives representing only 4.7% of the total population.
+**Interpretation:** The distribution of monthly income is **strongly right-skewed**, evidenced by the **Mean** _(\$6,503)_ significantly exceeding the **Median** _(\$4,919)_. While the majority of employees cluster in the lower income brackets _(approx. \$2,500–\$5,000)_, a distinct **right tail** of **high earners** extends to nearly **$20,000**. This indicates that a small cohort of highly paid executives disproportionately inflates the average, resulting in **high variability** _(SD = \$4,708)_ across the workforce.
 
 ### Over Time (Binary Nominal)
 
@@ -387,15 +380,15 @@ knitr::kable(
 print_freq_table(hr$OverTime, "Over Time")
 ```
 
-**Interpretation:** The majority of the workforce (71.7%, n=1,054) does not work overtime. However, a significant minority of 28.3% (n=416) actively engages in overtime, representing a distinct subgroup that may be more susceptible to burnout or attrition.
+**Interpretation:** The majority of the workforce _(71.7%, n=1,054)_ does **not work overtime**. However, a significant minority of **28.3%** _(n=416)_ actively engages in overtime, representing a distinct subgroup that may be more susceptible to burnout or attrition.
 
 ## Demographics
 
-This section analyzes Age and Years at Company using descriptive statistics and distributional plots to characterize employee demographic composition and tenure.
+This section analyzes **Age** and **Years at Company** using descriptive statistics and distributional plots to characterize employee demographic composition and tenure.
 
 ### Age (Continuous)
 
-```{r age-univariate, results = 'asis', fig.cap = "Distribution of employee age. The boxplot (left) summarizes dispersion and outliers, and the empirical cumulative distribution function (right) shows the cumulative age distribution", fig.height = 4, fig.pos = "H"}
+```{r age-univariate, results = 'asis', fig.cap = "Distribution of employee age. The boxplot (left) summarizes dispersion and outliers, and the empirical cumulative distribution function (right) shows the cumulative age distribution", fig.height = 4, fig.pos = 'H'}
 
 analyze_numeric(
   data_vec   = hr$Age,
@@ -406,7 +399,7 @@ analyze_numeric(
 )
 ```
 
-**Interpretation:** The age distribution is approximately symmetric and bell-shaped, spanning from 18 to 60 years with a standard deviation of 9.14. The moderate variability (IQR = 13) indicates that the middle 50% of the workforce is concentrated within a relatively narrow age band, suggesting a demographically balanced employee base without extreme skewness.
+**Interpretation:** The age distribution is approximately symmetric and bell-shaped, spanning from **18** to **60** years with a standard deviation of **9.14**. The moderate variability **(IQR = 13)** indicates that the middle 50% of the workforce is concentrated within a relatively narrow age band, suggesting a demographically balanced employee base without extreme skewness.
 
 ### Years At Company (Numeric)
 
@@ -421,7 +414,7 @@ analyze_numeric(
 )
 ```
 
-**Interpretation:** The distribution of tenure is strongly right-skewed, evidenced by the Mean (7.01) exceeding the Median (5.0). The boxplot reveals significant upper outliers (up to 40 years), indicating that while the typical employee has a tenure of 5 years or less, a distinct cohort of long-term veterans remains, heavily influencing the average.
+**Interpretation:** The distribution of tenure is **strongly right-skewed**, evidenced by the **Mean** _(7.01)_ exceeding the **Median** _(5.0)_. The boxplot reveals significant **upper outliers** _(up to 40 years)_, indicating that while the typical employee has a tenure of 5 years or less, a distinct cohort of long-term veterans remains, heavily influencing the average.
 
 # Bivariate Analysis
 
@@ -431,9 +424,9 @@ This section investigates the relationships between pairs of variables to identi
 
 We analyze the relationship between **Job Satisfaction** and **Attrition** to determine if lower employee morale correlates with higher turnover.
 
-```{r job-sat-vs-attrition, fig.height = 3, fig.width = 5, fig.pos = "H", fig.cap = "Attrition counts across Job Satisfaction levels. Employees reporting 'Low' satisfaction show a higher relative frequency of attrition compared to those in the 'High' and 'Very High' categories"}
+```{r job-sat-vs-attrition, fig.cap = "Attrition counts across Job Satisfaction levels. Employees reporting 'Low' satisfaction show a higher relative frequency of attrition compared to those in the 'High' and 'Very High' categories", fig.height = 3, fig.width = 5, fig.pos = 'H'}
 
-# Contingency Table with Margins
+# Contingency Table with Margins.
 tab_js_attr <- table(hr$Attrition, hr$JobSatisfaction)
 tab_js_attr_margins <- addmargins(tab_js_attr)
 knitr::kable(
@@ -443,14 +436,13 @@ knitr::kable(
 )
 
 # Conditional Relative Frequency Tables: Attrition vs Job Satisfaction
-
 # Row percentages (distribution of satisfaction levels within each attrition group)
 tab_js_rowprop <- prop.table(tab_js_attr, margin = 1)
 knitr::kable(
   tab_js_rowprop,
-  align = c('l', 'c', 'c', 'c', 'c'),
+  align   = c('l', 'c', 'c', 'c', 'c'),
   caption = "Row Relative Frequency: Job Satisfaction within Attrition Groups",
-  digits = 2
+  digits  = 2
 )
 
 par(mar = c(3, 3, 2, 1))
@@ -459,7 +451,7 @@ par(mar = c(3, 3, 2, 1))
 barplot(
   tab_js_attr,
   beside = TRUE,
-  main = "Attrition by Job Satisfaction",
+  main   = "Attrition by Job Satisfaction",
   legend = rownames(tab_js_attr),
   args.legend = list(
     x = "topright",
@@ -470,8 +462,8 @@ barplot(
     # Smaller text
     inset = c(-0.03, -0.05) # Slight adjust
   ),
-  xlab = "Satisfaction Level",
-  col = c("lightblue", "salmon")
+  xlab  = "Satisfaction Level",
+  col   = c("lightblue", "salmon")
 )
 
 par(mar = c(5, 4, 4, 2) + 0.1)
@@ -486,20 +478,20 @@ This section examines the relationship between Monthly Income and employee attri
 ```{r monthly-income-attrition-bivariate}
 
 income_by_attrition <- data.frame(
-  Mean = tapply(hr$MonthlyIncome, hr$Attrition, mean),
+  Mean   = tapply(hr$MonthlyIncome, hr$Attrition, mean),
   Median = tapply(hr$MonthlyIncome, hr$Attrition, median),
-  SD = tapply(hr$MonthlyIncome, hr$Attrition, sd)
+  SD     = tapply(hr$MonthlyIncome, hr$Attrition, sd)
 )
 knitr::kable(
   income_by_attrition,
   caption = "Monthly Income Summary by Attrition (Mean, Median, SD)",
-  digits = 2
+  digits  = 2
 )
 
 boxplot(
   MonthlyIncome ~ Attrition,
   data = hr,
-  col = c("lightblue", "salmon"),
+  col  = c("lightblue", "salmon"),
   main = "Monthly Income by Attrition",
   xlab = "Attrition Status",
   ylab = "Monthly Income (USD)"
@@ -531,7 +523,7 @@ boxplot(
   main = "Age by Attrition",
   xlab = "Attrition",
   ylab = "Age",
-  col = c("lightblue", "salmon")
+  col  = c("lightblue", "salmon")
 )
 
 # 2. Years at Company vs Attrition
@@ -541,10 +533,10 @@ boxplot(
   main = "Tenure by Attrition",
   xlab = "Attrition",
   ylab = "Years at Company",
-  col = c("lightgreen", "salmon")
+  col  = c("lightgreen", "salmon")
 )
 
-# Reset layout
+# Reset layout and margins.
 par(mfrow = c(1, 1))
 par(mar = c(5, 4, 4, 2) + 0.1)
 ```
