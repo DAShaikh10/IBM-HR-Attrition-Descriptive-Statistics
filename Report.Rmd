@@ -123,7 +123,7 @@ analyze_numeric <- function(data_vec,
                             col_border,
                             col_line) {
   quantiles <- quantile(data_vec, probs = c(0.25, 0.5, 0.75))
-  stats_df <- data.frame(
+  stats_df  <- data.frame(
     Mean     = mean(data_vec),
     `1st Q`  = quantiles["25%"],
     Median   = quantiles["50%"],
@@ -179,10 +179,11 @@ analyze_numeric <- function(data_vec,
 
 # Introduction
 
-The IBM HR Employee Attrition workforce data is organized as a data matrix of observations and qualitative and quantitative variables. This report performs a comprehensive descriptive statistical analysis to summarize the distribution of individual variables using frequencies, measures of location, and measures of dispersion. Bivariate techniques, including contingency tables and correlation coefficients, are applied to investigate the joint behavior and co-dependency between employee attributes and attrition. Furthermore, simple linear regression is utilized to model the linear relationship between tenure and monthly income by estimating the regression coefficients.
+The IBM HR Employee Attrition workforce data is organized as a data matrix of observations and qualitative and quantitative variables. This report performs a comprehensive descriptive statistical analysis to summarize the distribution of individual variables using frequencies, measure of location, and measure of dispersion. Bivariate techniques, including contingency tables and correlation coefficients, are applied to investigate the joint behavior and co-dependency between employee attributes and attrition. Furthermore, simple linear regression is utilized to model the linear relationship between tenure and monthly income by estimating the regression coefficients.
 
 ## Data Loading & Feature Selection
-We analyze **eight** key variables classified into the following datatypes :
+
+We analyze **eight** key variables classified into the following datatypes:
 
 - **Categorical - Nominal**: `Attrition`, `OverTime`
 - **Categorical - Ordinal**: `JobLevel` (1-5), `JobSatisfaction` (1-4), `WorkLifeBalance` (1-4)
@@ -224,7 +225,7 @@ hr$WorkLifeBalance <- factor(
 )
 ```
 
-## Data summary
+## Data Summary
 
 The dataset contains **`r nrow(hr)`** observations and **`r ncol(hr)`** variables _(Selected from 35 variables)_.
 
@@ -278,7 +279,7 @@ print_freq_table(
 )
 ```
 
-**Interpretation:** The data indicates **high** employee morale, with **"Very High"** _(31.2%, n=459)_ as the **modal** category. Cumulatively, over **61.29%** of the workforce reports **positive satisfaction** (High or Very High), significantly outweighing the **19.66%** who report **low** satisfaction.
+**Interpretation:** The data indicates **high** employee morale, with **"Very High"** _(31.22%, n=459)_ as the **modal** category. Cumulatively, over **61.29%** of the workforce reports **positive satisfaction** _(High or Very High)_, significantly outweighing the **19.66%** who report **low** satisfaction.
 
 ### Work Life Balance (Ordinal)
 
@@ -292,7 +293,7 @@ print_freq_table(
 )
 ```
 
-**Interpretation:** The data reveals a **strong skew** toward positive work-life balance, with **"Better"** _(60.8%, n=893)_ as the dominant **modal** category. Cumulatively, **71.16%** of the workforce falls into the **top two tiers** ("Better" or "Best"), while only **5.44%** report a "Bad" balance.
+**Interpretation:** The data reveals a **strong skew** toward positive work-life balance, with **"Better"** _(60.75%, n=893)_ as the dominant **modal** category. Cumulatively, **71.16%** of the workforce falls into the **top two tiers** _("Better" or "Best")_, while only **5.44%** report a _"Bad"_ balance.
 
 ## Financial Structure
 
@@ -310,7 +311,7 @@ print_freq_table(
 )
 ```
 
-**Interpretation:** The workforce structure exhibits a distinct pyramidal hierarchy, heavily concentrated in early-career roles. **Entry Level** _(36.9%, n=543)_ and **Junior** _(36.3%, n=534)_ positions **dominate**, cumulatively accounting for **73.27%** of the organization. In contrast, upper management is exclusive, with Executives representing only **4.69%** of the total population.
+**Interpretation:** The workforce structure exhibits a distinct pyramidal hierarchy, heavily concentrated in early-career roles. **Entry Level** _(36.94%, n=543)_ and **Junior** _(36.33%, n=534)_ positions **dominate**, cumulatively accounting for **73.27%** of the organization. In contrast, upper management is exclusive, with **Executives** representing only **4.69%** of the total population.
 
 ### Monthly Income (Continuous)
 
@@ -410,7 +411,7 @@ analyze_numeric(
 )
 ```
 
-**Interpretation:** The age distribution is approximately symmetric and bell-shaped, spanning from **18** to **60** years with a standard deviation of **9.14**. The moderate variability **(IQR = 13)** indicates that the middle 50% of the workforce is concentrated within a relatively narrow age band, suggesting a demographically balanced employee base without extreme skewness.
+**Interpretation:** The age distribution is approximately symmetric and bell-shaped, spanning from **18** to **60** years with a standard deviation of **9.14**. The moderate variability **(IQR = 13)** indicates that the middle 50% of the workforce is concentrated within a relatively narrow age band, suggesting a demographically balanced employee base without extreme skewness. The ECDF reinforces this concentration with a steep incline between ages **30** and **45**, indicating that the majority of the workforce density accumulates in this mid-career bracket. The curve crosses the 0.5 cumulative probability threshold at approximately **36 years**, confirming the median, before tapering off near age **60**.
 
 ### Years At Company (Numeric)
 
@@ -425,9 +426,10 @@ analyze_numeric(
 )
 ```
 
-**Interpretation:** The distribution of tenure is **strongly right-skewed**, evidenced by the **Mean** _(7.01)_ exceeding the **Median** _(5.0)_. The boxplot reveals significant **upper outliers** _(up to 40 years)_, indicating that while the typical employee has a tenure of 5 years or less, a distinct cohort of long-term veterans remains, heavily influencing the average.
+**Interpretation:** The distribution of tenure is **strongly right-skewed**, evidenced by the **Mean** _(7.01)_ exceeding the **Median** _(5.0)_. The boxplot reveals significant **upper outliers** _(up to 40 years)_, indicating that while the typical employee has a tenure of 5 years or less, a distinct cohort of long-term veterans remains, heavily influencing the average. The ECDF confirms this early-career concentration with a sharp vertical rise between 0 and 10 years, showing that approximately **75%** of the workforce has been with the company for **9 years or less** _(3rd Quartile)_, before the curve flattens out for the remaining long-term employees.
 
 \newpage
+
 # Bivariate Analysis
 
 This section investigates the relationships between pairs of variables to identify potential drivers of attrition. We employ contingency tables for categorical data and correlation matrices for numerical attributes.
@@ -484,6 +486,7 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 **Interpretation:** The analysis identifies **low** job satisfaction as a driver of attrition. Among employees who left the organization, **28%** reported 'Low' satisfaction, compared to only **18%** among those who stayed. The bar chart visually confirms this trend: as **satisfaction levels rise**, the volume of **retained employees** _(Blue)_ **increases** substantially, indicating that higher morale is strongly linked to workforce stability.
 
 \newpage
+
 ## Financial Factors & Attrition (Numeric vs. Categorical)
 
 This section examines the relationship between **Monthly Income** and employee **Attrition** to assess whether compensation levels differ between employees who stay and those who leave the organization. Group-wise summary statistics and correlation coefficients are used to describe the association between income and attrition status.
@@ -501,6 +504,8 @@ knitr::kable(
   digits  = 2
 )
 
+par(mar = c(4, 4, 2, 1)) # Reduce margins. 
+
 boxplot(
   MonthlyIncome ~ Attrition,
   data = hr,
@@ -510,8 +515,7 @@ boxplot(
   ylab = "Monthly Income (USD)"
 )
 
-# Encode Attrition as numeric (Yes = 1, No = 0)
-attrition_numeric <- as.numeric(hr$Attrition) - 1
+par(mar = c(5, 4, 4, 2) + 0.1) 
 ```
 
 **Interpretation:** Employees who left the organization earn **lower monthly incomes** than those who stayed, as reflected in both mean and median values.
@@ -657,7 +661,7 @@ $$\widehat{\text{MonthlyIncome}} = `r b0` + `r b1`(\text{YearsAtCompany})$$
 
 **Interpretation:** The analysis confirms a significant positive link ($p < 0.001$) where income grows by **\$395/year** from a **\$3,733** baseline. However, tenure explains only **26.45%** of the variance ($R^2=0.26$), and the **high residual error** _(4,039)_ implies that compensation is largely driven by other factors like role or performance.
 
-# Conclusion II
+# Conclusion
 
 This report characterized the IBM workforce structure and attrition dynamics through a rigorous descriptive statistical framework. Univariate analysis revealed that key quantitative variables - specifically **Monthly Income** and **Years at Company** are strongly **right-skewed**, with means consistently exceeding medians. This distributional asymmetry indicates that "average" workforce metrics are inflated by a small cohort of high-tenure, high-income outliers, suggesting that median values serve as more robust central estimators for this population.
 
