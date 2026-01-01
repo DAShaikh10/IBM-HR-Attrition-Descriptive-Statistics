@@ -3,7 +3,7 @@ title: "IBM HR Employee Attrition Descriptive Analysis"
 subtitle: "Statistical Computing WiSe '25 - Group Project"
 author: "Amaan Shaikh | Danish Ali Shaikh | Rajat Pandey"
 fontsize: 11pt
-geometry: 
+geometry:
   - top=0.5in
   - bottom=0.55in
   - left=0.5in
@@ -28,7 +28,7 @@ output:
   pdf_document:
     number_sections: true
     citation_package: natbib
-bibliography: references.bib
+bibliography: References/references.bib
 biblio-style: abbrvnat
 ---
 
@@ -183,7 +183,7 @@ analyze_numeric <- function(data_vec,
 
 # Introduction
 
-The IBM HR Employee Attrition workforce data is organized as a data matrix of observations and qualitative and quantitative variables. This report performs a comprehensive descriptive statistical analysis to summarize the distribution of individual variables using frequencies, measure of location, and measure of dispersion. Bivariate techniques, including contingency tables and correlation coefficients, are applied to investigate the joint behavior and co-dependency between employee attributes and attrition. Furthermore, simple linear regression is utilized to model the linear relationship between tenure and monthly income by estimating the regression coefficients. The analysis employs visualization tools from **ggplot2** [@R-ggplot2] and **graphics** [@R-graphics] packages, with tabular summaries generated using **knitr** [@R-knitr].
+The IBM HR Employee Attrition workforce data [@ibm-hr-dataset] is organized as a data matrix of observations and qualitative and quantitative variables. This report performs a comprehensive descriptive statistical analysis to summarize the distribution of individual variables using frequencies, measure of location, and measure of dispersion. Bivariate techniques, including contingency tables and correlation coefficients, are applied to investigate the joint behavior and co-dependency between employee attributes and attrition. Furthermore, simple linear regression is utilized to model the linear relationship between tenure and monthly income by estimating the regression coefficients. The analysis employs visualization tools from **ggplot2** [@R-ggplot2] and **graphics** [@R-graphics] packages, with tabular summaries generated using **knitr** [@R-knitr].
 
 ## Data Loading & Feature Selection
 
