@@ -3,7 +3,11 @@ title: "IBM HR Employee Attrition Descriptive Analysis"
 subtitle: "Statistical Computing WiSe '25 - Group Project"
 author: "Amaan Shaikh | Danish Ali Shaikh | Rajat Pandey"
 fontsize: 11pt
-geometry: margin=0.5in
+geometry: 
+  - top=0.5in
+  - bottom=0.55in
+  - left=0.5in
+  - right=0.5in
 header-includes:
   - \usepackage{titlesec}
   - \titlespacing*{\section}{0pt}{1.2ex}{0.8ex}
@@ -13,6 +17,13 @@ header-includes:
   - \usepackage{float}
   - \usepackage{caption}
   - \captionsetup{font=small}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \pagestyle{fancy}
+  - \fancyhf{}
+  - \fancyhead[R]{\includegraphics[height=1cm]{bht-logo.png}}
+  - \renewcommand{\headrulewidth}{0pt}
+  - \fancyfoot[C]{\thepage}
 output:
   pdf_document:
     number_sections: true
