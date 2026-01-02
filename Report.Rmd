@@ -489,7 +489,7 @@ barplot(
 par(mar = c(5, 4, 4, 2) + 0.1)
 ```
 
-**Interpretation:** The analysis identifies **low** job satisfaction as a driver of attrition. Among employees who left the organization, **28%** reported 'Low' satisfaction, compared to only **18%** among those who stayed. The bar chart visually confirms this trend: as **satisfaction levels rise**, the volume of **retained employees** _(Blue)_ **increases** substantially, indicating that higher morale is strongly linked to workforce stability.
+**Interpretation:** The analysis shows a clear association between job satisfaction and attrition. Among employees who left the organization, **28%** reported Low satisfaction, compared to 18% among those who stayed, while Very High satisfaction is more common among retained employees. The bar chart visually confirms this trend: as **satisfaction levels rise**, the volume of **retained employees** _(Blue)_ **increases** substantially,although attrition does not disappear entirely at higher satisfaction levels, indicating that job satisfaction alone does not fully explain attrition.
 
 \newpage
 
