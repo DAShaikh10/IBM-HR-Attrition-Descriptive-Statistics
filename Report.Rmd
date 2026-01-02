@@ -419,7 +419,7 @@ analyze_numeric(
 
 **Interpretation:** The age distribution is approximately symmetric and bell-shaped, spanning from **18** to **60** years with a standard deviation of **9.14**. The moderate variability **(IQR = 13)** indicates that the middle 50% of the workforce is concentrated within a relatively narrow age band, suggesting a demographically balanced employee base without extreme skewness. The ECDF reinforces this concentration with a steep incline between ages **30** and **45**, indicating that the majority of the workforce density accumulates in this mid-career bracket. The curve crosses the 0.5 cumulative probability threshold at approximately **36 years**, confirming the median, before tapering off near age **60**.
 
-### Years At Company (Numeric)
+### Years At Company (Discrete)
 
 ```{r years-at-company-univariate, results = 'asis', fig.cap = "Distribution of years at company showing low median tenure and a long right tail with high-tenure outliers", fig.height = 4, fig.pos = 'H'}
 
@@ -528,7 +528,7 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 
 \newpage
 
-## Demographics & Attrition (Numeric vs. Numeric)
+## Demographics & Attrition (Discrete / Continuous vs. Nominal)
 
 We examine the demographic profile of the workforce, specifically focusing on **Age** and **Years at Company** _(Tenure)_. We compare the distributions of these variables across attrition groups to determine if younger or newer employees are at higher risk of leaving.
 
@@ -564,7 +564,7 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 
 # Linear Regression Analysis
 
-## Correlation Analysis: Years at Company vs. Monthly Income (Numeric vs Numeric)
+## Correlation Analysis: Years at Company vs. Monthly Income (Discrete vs. Continuous)
 
 Before proceeding with regression modeling, we examine the strength and nature of the relationship between **tenure** _(Years at Company)_ and **compensation** _(Monthly Income)_ using both **Pearson** and **Spearman** correlation coefficients. Pearson correlation measures the linear association between two continuous variables, while Spearman correlation assesses monotonic relationships based on ranked data and is more robust to outliers.
 
