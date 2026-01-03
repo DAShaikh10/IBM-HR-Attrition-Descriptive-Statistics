@@ -13,6 +13,7 @@ header-includes:
   - \titlespacing*{\section}{0pt}{1.2ex}{0.8ex}
   - \titlespacing*{\subsection}{0pt}{1.0ex}{0.6ex}
   - \titlespacing*{\subsubsection}{0pt}{0.8ex}{0.4ex}
+  - \setlength{\parskip}{4pt}
   - \renewcommand{\arraystretch}{0.8}
   - \usepackage{float}
   - \usepackage{caption}
@@ -50,7 +51,6 @@ knitr::opts_chunk$set(
   message   = FALSE,
   fig.align = "center"
 )
-
 # ggplot theme.
 theme_set(theme_minimal())
 ```
@@ -150,7 +150,7 @@ analyze_numeric <- function(data_vec,
       var_name,
       "(Location & Dispersion)"
     ),
-    digits  = 2
+    digits  = 3
   ))
   
   par(mfrow = c(1, 2))
@@ -187,10 +187,10 @@ The IBM HR Employee Attrition workforce data [@ibm-hr-dataset] is organized as a
 
 ## Data Loading & Feature Selection
 
-We analyze **eight** key variables classified into the following datatypes:
+We analyze **seven** key variables classified into the following datatypes:
 
 - **Categorical - Nominal**: `Attrition`, `OverTime`
-- **Categorical - Ordinal**: `JobLevel` (1-5), `JobSatisfaction` (1-4), `WorkLifeBalance` (1-4)
+- **Categorical - Ordinal**: `JobLevel` (1-5), `JobSatisfaction` (1-4)
 - **Numeric - Continuous**: `Age`, `MonthlyIncome`
 - **Numeric - Discrete**: `YearsAtCompany`
 
@@ -198,8 +198,8 @@ We analyze **eight** key variables classified into the following datatypes:
 
 raw_data <- read.csv("data/ibm-hr-attrition.csv", stringsAsFactors = FALSE)
 hr       <- raw_data[, c("Age", "Attrition", "JobLevel",
-                         "JobSatisfaction", "MonthlyIncome", "OverTime",
-                         "WorkLifeBalance", "YearsAtCompany")]
+                         "JobSatisfaction", "MonthlyIncome", 
+                         "OverTime", "YearsAtCompany")]
 ```
 
 ```{r preprocessing}
@@ -219,12 +219,6 @@ hr$JobSatisfaction <- factor(
   hr$JobSatisfaction,
   levels  = 1:4,
   labels  = c("Low", "Medium", "High", "Very High"),
-  ordered = TRUE
-)
-hr$WorkLifeBalance <- factor(
-  hr$WorkLifeBalance,
-  levels  = 1:4,
-  labels  = c("Bad", "Good", "Better", "Best"),
   ordered = TRUE
 )
 ```
@@ -273,7 +267,7 @@ ggplot(hr,
 
 ### Job Satisfaction (Ordinal)
 
-```{r job-satisfaction-univariate}
+```{r job-satisfaction-univariate, fig.width = 3.5, fig.height = 2.5, fig.cap = "Distribution of Job Satisfaction Levels", fig.pos = "H"}
 
 print_freq_table(
   hr$JobSatisfaction,
@@ -281,23 +275,24 @@ print_freq_table(
   show_cumulative = TRUE,
   show_mode = TRUE
 )
+
+ggplot(hr, aes(x = JobSatisfaction, fill = JobSatisfaction)) +
+  geom_bar(width = 0.7) +
+  geom_text(
+    stat = "count",
+    aes(label = ..count..),
+    vjust = -0.3,
+    size = 2
+  ) +
+  labs(
+    title = "Distribution of Job Satisfaction Levels",
+    x = "Job Satisfaction",
+    y = "Absolute Frequency"
+  ) +
+  theme(legend.position = "none")
 ```
 
 **Interpretation:** The data indicates **high** employee morale, with **"Very High"** _(31.22%, n=459)_ as the **modal** category. Cumulatively, over **61.29%** of the workforce reports **positive satisfaction** _(High or Very High)_, significantly outweighing the **19.66%** who report **low** satisfaction.
-
-### Work Life Balance (Ordinal)
-
-```{r work-life-balance-univariate}
-
-print_freq_table(
-  hr$WorkLifeBalance,
-  "Work Life Balance",
-  show_cumulative = TRUE,
-  show_mode = TRUE
-)
-```
-
-**Interpretation:** The data reveals a **strong skew** toward positive work-life balance, with **"Better"** _(60.75%, n=893)_ as the dominant **modal** category. Cumulatively, **71.16%** of the workforce falls into the **top two tiers** _("Better" or "Best")_, while only **5.44%** report a _"Bad"_ balance.
 
 ## Financial Structure
 
@@ -414,8 +409,6 @@ analyze_numeric(
   col_line   = "darkred"
 )
 ```
-
-\newpage
 
 **Interpretation:** The age distribution is approximately symmetric and bell-shaped, spanning from **18** to **60** years with a standard deviation of **9.14**. The moderate variability **(IQR = 13)** indicates that the middle 50% of the workforce is concentrated within a relatively narrow age band, suggesting a demographically balanced employee base without extreme skewness. The ECDF reinforces this concentration with a steep incline between ages **30** and **45**, indicating that the majority of the workforce density accumulates in this mid-career bracket. The curve crosses the 0.5 cumulative probability threshold at approximately **36 years**, confirming the median, before tapering off near age **60**.
 
