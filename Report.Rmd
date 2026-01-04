@@ -525,11 +525,23 @@ We examine the demographic profile of the workforce, specifically focusing on **
 par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
 
 # Side-by-side boxplots comparing age and tenure by attrition status
-boxplot(Age ~ Attrition, data = hr, main = "Age by Attrition",
-        xlab = "Attrition", ylab = "Age", col = c("lightblue", "salmon"))
+boxplot(
+  Age ~ Attrition,
+  data = hr,
+  main = "Age by Attrition",
+  xlab = "Attrition",
+  ylab = "Age",
+  col = c("lightblue", "salmon")
+)
 
-boxplot(YearsAtCompany ~ Attrition, data = hr, main = "Tenure by Attrition",
-        xlab = "Attrition", ylab = "Years at Company", col = c("lightgreen", "salmon"))
+boxplot(
+  YearsAtCompany ~ Attrition,
+  data = hr,
+  main = "Tenure by Attrition",
+  xlab = "Attrition",
+  ylab = "Years at Company",
+  col = c("lightgreen", "salmon")
+)
 
 par(mfrow = c(1, 1), mar = c(5, 4, 4, 2) + 0.1)
 ```
