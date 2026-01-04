@@ -512,7 +512,7 @@ boxplot(
 par(mar = c(5, 4, 4, 2) + 0.1) 
 ```
 
-**Interpretation:** Employees who left the organization earn **lower monthly incomes** than those who stayed, as reflected in both mean and median values.
+**Interpretation:** Employees who left the organization earn **lower monthly incomes** than those who stayed. The mean monthly income for employees who stayed is _USD 6,832.74 (median: USD 5,204)_, compared to _USD 4,787.09 (median: USD 3,202)_ for employees who left. The boxplot shows that income among employees who left is concentrated at **lower levels** with **reduced variability**, while employees who stayed exhibit **higher incomes** and **greater dispersion**. This indicates an association between lower compensation and higher attrition, though the findings are descriptive and do not imply causality.
 
 \newpage
 
