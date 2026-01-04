@@ -385,6 +385,8 @@ knitr::kable(
 )  
 ```
 
+\newpage
+
 **Interpretation:** The distribution of monthly income is **strongly right-skewed**, evidenced by the **Mean** _(\$6,503)_ significantly exceeding the **Median** _(\$4,919)_. While the majority of employees cluster in the lower income brackets _(approx. \$2,500–\$5,000)_, a distinct **right tail** of **high earners** extends to nearly **$20,000**. This indicates that a small cohort of highly paid executives disproportionately inflates the average, resulting in **high variability** _(SD = \$4,708)_ across the workforce.
 
 ### Over Time (Binary Nominal)
