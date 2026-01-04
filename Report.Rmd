@@ -75,15 +75,20 @@ print_freq_table <- function(x,
                              caption = NULL,
                              show_cumulative = FALSE,
                              show_mode = FALSE) {
+  # Create frequency table and rename columns
   df            <- as.data.frame(table(x))
   colnames(df)  <- c(var_name, "Frequency")
   
+  # Calculate relative frequencies (percentages)
   df$Proportion <- df$Frequency / sum(df$Frequency) * 100
+  
+  # Optionally add cumulative frequencies
   if (show_cumulative) {
     df$`Cum. Freq.` <- cumsum(df$Frequency)
     df$`Cum. %`     <- cumsum(df$Proportion)
   }
   
+  # Optionally highlight modal category
   if (show_mode) {
     mode_value     <- df[[var_name]][which.max(df$Frequency)]
     df[[var_name]] <- ifelse(df[[var_name]] == mode_value,
@@ -91,6 +96,7 @@ print_freq_table <- function(x,
                              as.character(df[[var_name]]))
   }
 
+  # Set default caption if not provided
   if (is.null(caption)) {
     caption <- paste(var_name, "Frequency Table")
   }
@@ -108,6 +114,7 @@ print_freq_table <- function(x,
 # Arguments:
 #   x: a vector, a data frame, an array - for which mode is to be obtained.
 print_mode <- function(x) {
+  # Get unique values and find most frequent one using tabulate and match
   uniqv <- unique(x)
   uniqv[which.max(tabulate(match(x, uniqv)))]
 }
@@ -126,6 +133,7 @@ analyze_numeric <- function(data_vec,
                             col_fill,
                             col_border,
                             col_line) {
+  # Calculate quartiles and create statistics data frame
   quantiles <- quantile(data_vec, probs = c(0.25, 0.5, 0.75))
   stats_df  <- data.frame(
     Mean     = mean(data_vec),
@@ -141,7 +149,7 @@ analyze_numeric <- function(data_vec,
   
   rownames(stats_df) <- NULL # Remove row names for a cleaner table.
   
-  # We use print() so it renders even when called inside a function.
+  # Print statistics table (needed for rendering inside function)
   print(knitr::kable(
     stats_df,
     align   = 'c',
@@ -153,9 +161,11 @@ analyze_numeric <- function(data_vec,
     digits  = 3
   ))
   
+  # Create side-by-side boxplot and ECDF
   par(mfrow = c(1, 2))
   par(mar = c(4, 4, 2, 1)) # Reduce margins.
   
+  # Boxplot showing dispersion and outliers
   boxplot(
     data_vec,
     main        = paste("Boxplot of", var_name),
@@ -165,6 +175,7 @@ analyze_numeric <- function(data_vec,
     outlier.col = col_border
   )
   
+  # ECDF plot showing cumulative distribution
   plot(
     ecdf(data_vec),
     main      = paste("ECDF of", var_name),
@@ -176,8 +187,9 @@ analyze_numeric <- function(data_vec,
     pch       = NA
   )
   
-  # Reset Layout.
+  # Reset layout and margins
   par(mfrow = c(1, 1))
+  par(mar = c(5, 4, 4, 2) + 0.1)
 }
 ```
 
@@ -248,6 +260,7 @@ This section performs a uni-variate analysis to characterize employee **sentimen
 
 print_freq_table(hr$Attrition, "Attrition Status")
 
+# Barplot using ggplot [@R-ggplot2]
 ggplot(hr,
   aes(x = Attrition, fill = Attrition)) +
   geom_bar(width = 0.7) + # Bars
@@ -276,6 +289,7 @@ print_freq_table(
   show_mode = TRUE
 )
 
+# Barplot using ggplot [@R-ggplot2]
 ggplot(hr, aes(x = JobSatisfaction, fill = JobSatisfaction)) +
   geom_bar(width = 0.7) +
   geom_text(
@@ -318,10 +332,10 @@ print_freq_table(
 
 avg_inc <- mean(hr$MonthlyIncome)
 med_inc <- median(hr$MonthlyIncome)
-quants  <- quantile(hr$MonthlyIncome, probs = c(0.25, 0.5, 0.75))
 
-par(mar = c(4, 4, 2, 1)) # Reduce margins. 
+par(mar = c(4, 4, 2, 1))
 
+# Plot histogram with overlaid mean and median lines
 hist(
   hr$MonthlyIncome,
   main   = "Distribution of Monthly Income",
@@ -329,36 +343,26 @@ hist(
   ylab   = "Absolute Frequency",
   col    = "steelblue",
   border = "white",
-  ylim   = c(0, 400) # Increase Y-limit to ensure legend fits clearly.
+  ylim   = c(0, 400)
 )
 
-# Add Vertical Lines (Mean & Median)
-abline(
-  v = avg_inc,
-  col = "firebrick",
-  lwd = 2,
-  lty = 2
-)
-abline(
-  v   = med_inc,
-  col = "navy",
-  lwd = 2,
-  lty = 1
-)
+abline(v = avg_inc, col = "firebrick", lwd = 2, lty = 2)
+abline(v = med_inc, col = "navy", lwd = 2, lty = 1)
 
 legend(
   "topright",
   legend = c(paste("Mean:", round(avg_inc, 0)), paste("Median:", round(med_inc, 0))),
   col    = c("firebrick", "navy"),
   lwd    = 2,
-  lty    = c(2, 1), # Match line types (2=Dashed, 1=Solid)
+  lty    = c(2, 1),
   bty    = "n",
   cex    = 0.9
 )
 
-par(mar = c(5, 4, 4, 2) + 0.1) # Reset margins.
+par(mar = c(5, 4, 4, 2) + 0.1)
 
-# Create Expanded Statistics Table.
+# Create statistics table
+quants    <- quantile(hr$MonthlyIncome, probs = c(0.25, 0.5, 0.75))
 inc_stats <- data.frame(
   Mean        = avg_inc,
   `1st Q`     = quants["25%"],
@@ -368,10 +372,9 @@ inc_stats <- data.frame(
   SD          = sd(hr$MonthlyIncome),
   Range       = paste(range(hr$MonthlyIncome), collapse = " – "),
   IQR         = IQR(hr$MonthlyIncome),
-  check.names = FALSE # Allow `1st Q`.
+  check.names = FALSE
 )
 
-# Remove row names for a cleaner table.
 rownames(inc_stats) <- NULL
 
 knitr::kable(
@@ -460,21 +463,13 @@ knitr::kable(
 
 par(mar = c(3, 3, 2, 1))
 
-# Grouped Barplot
+# Grouped barplot comparing attrition across satisfaction levels
 barplot(
   tab_js_attr,
   beside = TRUE,
   main   = "Attrition by Job Satisfaction",
   legend = rownames(tab_js_attr),
-  args.legend = list(
-    x = "topright",
-    # Position
-    bty = "n",
-    # No box border
-    cex = 0.8,
-    # Smaller text
-    inset = c(-0.03, -0.05) # Slight adjust
-  ),
+  args.legend = list(x = "topright", bty = "n", cex = 0.8, inset = c(-0.03, -0.05)),
   xlab  = "Satisfaction Level",
   col   = c("lightblue", "salmon")
 )
@@ -527,30 +522,16 @@ We examine the demographic profile of the workforce, specifically focusing on **
 
 ```{r demographics-vs-attrition, fig.cap="Demographic Drivers of Attrition: (Left) Age distribution showing a lower median age for leavers; (Right) Tenure distribution showing early-stage attrition among new hires.", fig.pos = 'H'}
 
-par(mfrow = c(1, 2))
-par(mar = c(4, 4, 2, 1)) # Reduce margins.
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
 
-boxplot(
-  Age ~ Attrition,
-  data = hr,
-  main = "Age by Attrition",
-  xlab = "Attrition",
-  ylab = "Age",
-  col  = c("lightblue", "salmon")
-)
+# Side-by-side boxplots comparing age and tenure by attrition status
+boxplot(Age ~ Attrition, data = hr, main = "Age by Attrition",
+        xlab = "Attrition", ylab = "Age", col = c("lightblue", "salmon"))
 
-boxplot(
-  YearsAtCompany ~ Attrition,
-  data = hr,
-  main = "Tenure by Attrition",
-  xlab = "Attrition",
-  ylab = "Years at Company",
-  col  = c("lightgreen", "salmon")
-)
+boxplot(YearsAtCompany ~ Attrition, data = hr, main = "Tenure by Attrition",
+        xlab = "Attrition", ylab = "Years at Company", col = c("lightgreen", "salmon"))
 
-# Reset layout and margins.
-par(mfrow = c(1, 1))
-par(mar = c(5, 4, 4, 2) + 0.1)
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 2) + 0.1)
 ```
 
 **Interpretation:** The analysis confirms that attrition is primarily an **early-career phenomenon**. Employees who leave are generally **younger** _(median age 32 vs. 36)_ and have significantly **shorter tenure** _(median 3 years vs. 6 years)_ compared to those who stay. This indicates that the organization struggles most with retaining new and junior talent, rather than long-term employees.
@@ -590,72 +571,51 @@ We model **Monthly Income** ($Y$) as a linear function of **Years at Company** (
 
 ```{r monthly-income-vs-years-regression, fig.cap = "Scatterplot with density shading illustrating the relationship between Years at Company and Monthly Income. The red regression line indicates a positive linear trend, while the blue density shading reveals the concentration of data points, particularly in the lower tenure and income ranges.", fig.height = 4, fig.width = 6}
 
-# Fit linear model.
+# Fit linear regression model
 lm_fit <- lm(MonthlyIncome ~ YearsAtCompany, data = hr)
 lm_sum <- summary(lm_fit)
 
-par(mar = c(4, 4, 2, 1)) # Reduce margins.
+par(mar = c(4, 4, 2, 1))
 
-# Simple base R scatter plot with regression line using smoothScatter [@R-graphics].
+# Density scatter plot with regression line
 smoothScatter(
-  hr$YearsAtCompany,
-  hr$MonthlyIncome,
-  xlab = "Years at Company",
-  ylab = "Monthly Income (USD)",
+  hr$YearsAtCompany, hr$MonthlyIncome,
+  xlab = "Years at Company", ylab = "Monthly Income (USD)",
   main = "Monthly Income vs Years at Company",
-  colramp = colorRampPalette(c("white", "#377eb8")),
-  pch = 19
+  colramp = colorRampPalette(c("white", "#377eb8")), pch = 19
 )
 
-# Add regression line.
 abline(lm_fit, col = "#e41a1c", lwd = 2)
-
-legend(
-  "bottomright",
-  legend = c("Data Density", "Regression Line"),
-  fill = c("#377eb8", "#e41a1c"), # Use fill for smoothScatter legend
-  bty = "n",
-  cex = 0.85
-)
-
-# Extract values for the formula.
-b0  <- round(coef(lm_fit)[1], 2) # Intercept
-b1  <- round(coef(lm_fit)[2], 2) # Slope
-rse <- round(lm_sum$sigma, 2)   # Residual Std Error
-r2  <- round(lm_sum$r.squared, 4) # R-squared
+legend("bottomright", legend = c("Data Density", "Regression Line"),
+       fill = c("#377eb8", "#e41a1c"), bty = "n", cex = 0.85)
 
 par(mar = c(5, 4, 4, 2) + 0.1)
 
-# Coefficient Table.
+# Extract regression parameters for equation
+b0 <- round(coef(lm_fit)[1], 2)
+b1 <- round(coef(lm_fit)[2], 2)
+
+# Coefficient table
 coeffs <- data.frame(
   Predictor     = c("Intercept", "Years at Company"),
   Estimate      = round(coef(lm_fit), 2),
   `Std Error`   = round(lm_sum$coefficients[, "Std. Error"], 2),
   `t-Statistic` = round(lm_sum$coefficients[, "t value"], 2),
-  `p-Value`     = format.pval(lm_sum$coefficients[, "Pr(>|t|)"], eps = 0.001)
+  `p-Value`     = format.pval(lm_sum$coefficients[, "Pr(>|t|)"], eps = 0.001),
+  check.names   = FALSE
 )
 rownames(coeffs) <- NULL
 
-knitr::kable(
-  coeffs, 
-  align = 'c', 
-  caption = "Linear Regression Coefficients"
-)
+knitr::kable(coeffs, align = 'c', caption = "Linear Regression Coefficients")
 
+# Model fit statistics
 fit_stats <- data.frame(
   Measure = c("R-Squared", "Residual Std. Error (RSE)", "Observations"),
-  Value   = c(
-    round(lm_sum$r.squared, 4),
-    round(lm_sum$sigma, 2),
-    format(nobs(lm_fit), big.mark = ",")
-  )
+  Value   = c(round(lm_sum$r.squared, 4), round(lm_sum$sigma, 2),
+              format(nobs(lm_fit), big.mark = ","))
 )
 
-knitr::kable(
-  fit_stats, 
-  align   = 'l', 
-  caption = "Model Goodness of Fit"
-)
+knitr::kable(fit_stats, align = 'l', caption = "Model Goodness of Fit")
 ```
 
 **Regression Equation:**
